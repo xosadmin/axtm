@@ -14,6 +14,29 @@ def testip(inputvalue):
     except:
         return False
 
+def checkvalue(type,value):
+    try:
+        rawinput = int(value)
+    except ValueError:
+        return False
+    if type == "ttl":
+        if rawinput >= 1 and rawinput <= 255:
+            return True
+        else:
+            return False
+    elif type == "mtu":
+        if rawinput >= 68 and rawinput <= 9000:
+            return True
+        else:
+            return False
+    elif type == "dstport":
+        if rawinput >= 1 and rawinput <= 65535:
+            return True
+        else:
+            return False
+    else:
+        return False
+
 def checkmandatory(dicts):
     modifydicts = dicts.copy()  # Make a copy of the dictionary to avoid modifying the original
     mandatory = ["src", "dst", "address", "type", "mtu", "ttl"]
@@ -27,8 +50,13 @@ def checkmandatory(dicts):
         # If mandatory fields are missing, add this config to remove list
         src = modifydicts[key].get("src")
         dst = modifydicts[key].get("dst")
+        ttl = modifydicts[key].get("ttl")
+        mtu = modifydicts[key].get("mtu")
         if not testip(src) or not testip(dst):
-            print(f"Warning: config {key} will not be provisioned because of incorrect src/dst address.")
+            print(f"Error: config {key} will not be provisioned because of incorrect src/dst address.")
+            keys_to_remove.append(key)
+        if not checkvalue("ttl",ttl) or not checkvalue("mtu",mtu):
+            print(f"Error: config {key} will not be provisioned because of incorrect ttl and/or mtu.")
             keys_to_remove.append(key)
         if missing_keys:
             keys_to_remove.append(key)
@@ -160,6 +188,9 @@ for key in checkedArgs:
                 print(f"Incomplete configuration for vxlan {key2}. Skipped.")
                 continue
             else:
+                if not checkvalue("dstport",dstport):
+                    print(f"The config {key2} contains invalid dstport. Skipping...")
+                    continue
                 if checkedArgs[key2]["bridge"]:
                     if detectBridge(checkedArgs[key2]["bridge"]):
                         createLink(key2,checkedArgs[key2]["src"],checkedArgs[key2]["dst"],checkedArgs[key2]["dstport"],
