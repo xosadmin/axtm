@@ -14,7 +14,6 @@ def testip(inputvalue):
     except:
         return False
 
-
 def checkmandatory(dicts):
     modifydicts = dicts.copy()  # Make a copy of the dictionary to avoid modifying the original
     mandatory = ["src", "dst", "address", "type", "mtu", "ttl"]
@@ -104,6 +103,16 @@ def detectUser():
             return False
     except:
         return False
+    
+def detectBridge(bridge):
+    try:
+        result = subprocess.check_output(f"brctl show | grep {bridge}", shell=True, text=True)
+        if result.strip():
+            return True
+        else:
+            return False
+    except subprocess.CalledProcessError:
+        return False
 
 def prepostup(type,command):
     print(f"Executing {type} command: {command}")
@@ -152,9 +161,13 @@ for key in checkedArgs:
                 continue
             else:
                 if checkedArgs[key2]["bridge"]:
-                    createLink(key2,checkedArgs[key2]["src"],checkedArgs[key2]["dst"],checkedArgs[key2]["dstport"],
-                               checkedArgs[key2]["ttl"],checkedArgs[key2]["vni"],checkedArgs[key2]["mtu"],
-                               checkedArgs[key2]["bridge"])
+                    if detectBridge(checkedArgs[key2]["bridge"]):
+                        createLink(key2,checkedArgs[key2]["src"],checkedArgs[key2]["dst"],checkedArgs[key2]["dstport"],
+                                checkedArgs[key2]["ttl"],checkedArgs[key2]["vni"],checkedArgs[key2]["mtu"],
+                                checkedArgs[key2]["bridge"])
+                    else:
+                        print(f"Bridge {checkedArgs[key2]["bridge"]} is not exist. Skipping...")
+                        continue
                 else:
                     if testip(checkedArgs[key2]["address"]):
                         createLink(key2, checkedArgs[key2]["src"], checkedArgs[key2]["dst"], checkedArgs[key2]["dstport"],
