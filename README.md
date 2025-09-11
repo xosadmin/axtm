@@ -1,5 +1,5 @@
 # AXTM  
-This is a python-based linux tunnel manager, which helps user easily create ip tunnel on Linux OS.  
+This is a python-based tunnel manager, which helps user easily create ip tunnel on Linux OS.  
   
 ### Brief information  
 - Supported OS: Debian 11+ / Ubuntu 20.04+
