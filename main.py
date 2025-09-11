@@ -17,25 +17,18 @@ def testip(inputvalue):
 def checkvalue(type,value):
     try:
         rawinput = int(value)
-    except ValueError:
+    except ValueError: # If value is not a digit/contains non-digit value
         return False
     if type == "ttl":
         if rawinput >= 1 and rawinput <= 255:
             return True
-        else:
-            return False
     elif type == "mtu":
         if rawinput >= 68 and rawinput <= 9000:
             return True
-        else:
-            return False
     elif type == "dstport":
         if rawinput >= 1 and rawinput <= 65535:
             return True
-        else:
-            return False
-    else:
-        return False
+    return False
 
 def checkmandatory(dicts):
     modifydicts = dicts.copy()  # Make a copy of the dictionary to avoid modifying the original
