@@ -5,8 +5,8 @@
 # address = <IP-address-for-tunnel>
 # mtu = 1450
 # ttl = 255
-#
-# Optional configurations:
 # dstport = <peers-endpoint-port> (for vxlan only)
 # vni = <tunnel-id> (for vxlan only)
+#
+# Optional configurations:
 # bridge = <Destination-bridge-the-tunnel-will-add-to> (for vxlan only) (address will be disregarded if this setting is set)
