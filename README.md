@@ -16,7 +16,7 @@ There are two methods to install AXTM.
 - Clone this project
 - Install ``python3`` and ``python3-pip`` (You can skip it if you already installed)
 - Create directory ``/opt/axtm``
-- Copy ``conf.ini``, ``main.py`` to ``/opt/axtm``
+- Copy and create ``conf.ini``, ``main.py`` to ``/opt/axtm``
 - Install service by copy ``axtm.service`` to ``/etc/systemd/system``, and perform ``systemd daemon-reload``
 - Use ``pip3 install -r requirements.txt`` to install dependencies
 - Add tunnel config, enable and start the service
