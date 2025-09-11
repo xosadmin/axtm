@@ -20,3 +20,5 @@ There are two methods to install AXTM.
 - Install service by copy ``axtm.service`` to ``/etc/systemd/system``, and perform ``systemd daemon-reload``
 - Use ``pip3 install -r requirements.txt`` to install dependencies
 - Add tunnel config, enable and start the service
+
+For example of ``conf.ini``, please refer to [conf.ini.example](https://github.com/xosadmin/axtm/blob/main/conf.ini.example)  
