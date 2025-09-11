@@ -37,7 +37,10 @@ def checkmandatory(dicts):
     keys_to_remove = []  # List to store keys to remove
     for key, values in modifydicts.items():
         missing_keys = []
+        tunnelType = modifydicts[key]["type"]
         for item in mandatory:
+            if tunnelType == "vxlan" and item == "address":
+                continue
             if item not in values:
                 missing_keys.append(item)
         # If mandatory fields are missing, add this config to remove list
@@ -83,14 +86,28 @@ def readconf(conffile,section,settings):
 
     return config[section][settings]
 
+def isIPv6(addr):
+    ip_for_check = ipaddress.ip_address(addr)
+    if isinstance(ip_for_check, ipaddress.IPv6Address):
+        return True
+    else:
+        return False
+
 def runCommand(command):
     print(f"+ Executing command: {command}")
     subprocess.run(command, shell=True, check=True)
 
 def createTunnel(name,type,localaddr,dstaddr,ttl,mtu,ipaddress):
-    cmd = [f"ip tunnel add {type}-{name} type {type} local {localaddr} remote {dstaddr} ttl {ttl}",
+    cmd = [f"ip tunnel add {type}-{name} mode {type} local {localaddr} remote {dstaddr} ttl {ttl}",
            f"ip link set {type}-{name} mtu {mtu} up",
            f"ip addr add {ipaddress} dev {type}-{name}"]
+    for item in cmd:
+        runCommand(item)
+
+def creategretap(name,localaddr,dstaddr,ttl,mtu,ipaddress):
+    cmd = [f"ip link add gretap-{name} type gretap local {localaddr} remote {dstaddr} ttl {ttl}",
+           f"ip link set gretap-{name} mtu {mtu} up",
+           f"ip addr add {ipaddress} dev gretap-{name}"]
     for item in cmd:
         runCommand(item)
 
@@ -143,7 +160,7 @@ if not detectUser():
     print("You are not running on user root. Exiting...")
     exit(1)
 
-print("Welcome. AXTunnelmanamger will start provision tunnel(s) after 3 seconds....")
+print("Welcome. AXTM will start provision tunnel(s) after 3 seconds....")
 time.sleep(3)
 
 confFile = os.path.join("conf.ini")
@@ -161,6 +178,8 @@ for item in sections:
     name = item.lower()
     if len(name) > 6:
         name = name[0:6]
+    if not name.isalpha():
+        name = name[0:6] + "a"
     if name not in arguments:
         arguments[name] = {}
     for key, value in config[item].items():
@@ -169,43 +188,61 @@ for item in sections:
 
 checkedArgs = checkmandatory(arguments)
 
-for key in checkedArgs:
-    for key2 in checkedArgs[key]:
-        if detectTunnel(key2):
-            print(f"The tunnel {key2} already up. Skipped.")
+for name, conf in checkedArgs.items():
+    if detectTunnel(name):
+        print(f"The tunnel {name} already up. Skipped.")
+        continue
+
+    if conf["type"] == "vxlan":
+        vni = conf.get("vni")
+        dstport = conf.get("dstport")
+
+        if not vni or not dstport:
+            print(f"Incomplete configuration for vxlan {name}. Skipped.")
             continue
-        if checkedArgs[key2]["type"] == "vxlan":
-            vni = checkedArgs[key2].get("vni")
-            dstport = checkedArgs[key2].get("dstport")
-            if not vni or not dstport:
-                print(f"Incomplete configuration for vxlan {key2}. Skipped.")
-                continue
+
+        if not checkvalue("dstport", dstport):
+            print(f"The config {name} contains invalid dstport. Skipping...")
+            continue
+
+        if "bridge" in conf and conf["bridge"]:
+            if detectBridge(conf["bridge"]):
+                createLink(name, conf["src"], conf["dst"], conf["dstport"],
+                           conf["ttl"], conf["vni"], conf["mtu"], conf["bridge"])
             else:
-                if not checkvalue("dstport",dstport):
-                    print(f"The config {key2} contains invalid dstport. Skipping...")
-                    continue
-                if checkedArgs[key2]["bridge"]:
-                    if detectBridge(checkedArgs[key2]["bridge"]):
-                        createLink(key2,checkedArgs[key2]["src"],checkedArgs[key2]["dst"],checkedArgs[key2]["dstport"],
-                                checkedArgs[key2]["ttl"],checkedArgs[key2]["vni"],checkedArgs[key2]["mtu"],
-                                checkedArgs[key2]["bridge"])
-                    else:
-                        print(f"Bridge {checkedArgs[key2]["bridge"]} is not exist. Skipping...")
-                        continue
-                else:
-                    if testip(checkedArgs[key2]["address"]):
-                        createLink(key2, checkedArgs[key2]["src"], checkedArgs[key2]["dst"], checkedArgs[key2]["dstport"],
-                                   checkedArgs[key2]["ttl"],checkedArgs[key2]["vni"], checkedArgs[key2]["mtu"],
-                                   checkedArgs[key2]["address"])
-                    else:
-                        print(f"Incorrect endpoint address. Skipping config {key2}...")
-                        continue
+                print(f"Bridge {conf['bridge']} does not exist. Skipping...")
+                continue
         else:
-            if testip(checkedArgs[key2]["address"]):
-                createTunnel(key2,checkedArgs[key2]["type"],checkedArgs[key2]["src"],checkedArgs[key2]["dst"],
-                             checkedArgs[key2]["ttl"],checkedArgs[key2]["mtu"],checkedArgs[key2]["address"])
+            if testip(conf["address"]):
+                createLink(name, conf["src"], conf["dst"], conf["dstport"],
+                           conf["ttl"], conf["vni"], conf["mtu"], conf["address"])
             else:
-                print(f"Incorrect endpoint address. Skipping config {key2}...")
+                print(f"Incorrect endpoint address. Skipping config {name}...")
                 continue
+    elif conf["type"] == "gretap":
+        if testip(conf["address"]):
+            creategretap(name,conf["src"],conf["dst"],conf["ttl"],conf["mtu"],conf["address"])
+        else:
+            print(f"Incorrect endpoint address. Skipping config {name}...")
+            continue
+    else:
+        # Non-vxlan tunnel
+        if conf["type"] == "sit":
+            try:
+                src_ip = ipaddress.ip_address(conf["src"].split("/")[0])
+                dst_ip = ipaddress.ip_address(conf["dst"].split("/")[0])
+                if isinstance(src_ip, ipaddress.IPv6Address) or isinstance(dst_ip, ipaddress.IPv6Address):
+                    print(f"Error: sit tunnel {name} is not allowed to use IPv6 as src/dst.")
+                    continue
+            except ValueError:
+                print(f"Invalid IP format in config {name}. Skipping...")
+                continue
+
+        if testip(conf["address"]):
+            createTunnel(name, conf["type"], conf["src"], conf["dst"],
+                         conf["ttl"], conf["mtu"], conf["address"])
+        else:
+            print(f"Incorrect endpoint address. Skipping config {name}...")
+            continue
 
 print(f"Process completed.")
