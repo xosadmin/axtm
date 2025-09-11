@@ -32,8 +32,7 @@ if [[ ! -d "/opt/axtm" ]]; then
   mkdir -p /opt/axtm || echo "Error: cannot create directory." && exit 1
 fi
 
-touch /opt/axtm/conf.ini || echo "Error: cannot write default config to folder" && exit 1
-cp -r main.py /opt/axtm || echo "Error: cannot write program to folder" && exit 1
+touch /opt/axtm/conf.ini && cp -r main.py /opt/axtm
 
 if [[ ! -f requirements.txt ]]; then
   echo "Error: requirements.txt is not exist. Exiting..." >&2
