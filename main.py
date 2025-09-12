@@ -188,6 +188,10 @@ for item in sections:
 
 checkedArgs = checkmandatory(arguments)
 
+if not checkedArgs:
+    print("There is no valid tunnel configuration in conf.ini. Exiting...")
+    exit(1)
+
 for name, conf in checkedArgs.items():
     if detectTunnel(name):
         print(f"The tunnel {name} already up. Skipped.")
