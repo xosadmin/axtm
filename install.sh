@@ -29,7 +29,10 @@ else
 fi
 
 if [[ ! -d "/opt/axtm" ]]; then
-  mkdir -p /opt/axtm || echo "Error: cannot create directory." && exit 1
+  if ! mkdir -p /opt/axtm; then
+      echo "Error: cannot create directory /opt/axtm. Exiting..." >&2
+      exit 1
+  fi
 fi
 
 touch /opt/axtm/conf.ini && cp -r main.py /opt/axtm
