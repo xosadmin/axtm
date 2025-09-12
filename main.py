@@ -1,4 +1,5 @@
-import os,configparser
+import os,sys
+import configparser
 import subprocess
 import ipaddress
 import time
@@ -66,7 +67,7 @@ def checkmandatory(dicts):
 def list_sections(conffile):
     if not os.path.exists(conffile):
         print("Cannot find specified config file. Exiting...")
-        exit(1)
+        sys.exit(1)
 
     config = configparser.ConfigParser()
     config.read(conffile)
@@ -76,7 +77,7 @@ def list_sections(conffile):
 def readconf(conffile,section,settings):
     if not os.path.exists(conffile):
         print("Cannot find specified config file. Exiting...")
-        exit(1)
+        sys.exit(1)
 
     config = configparser.ConfigParser()
     config.read(conffile)
@@ -158,7 +159,7 @@ def prepostup(type,command):
 
 if not detectUser():
     print("You are not running on user root. Exiting...")
-    exit(1)
+    sys.exit(1)
 
 print("Welcome. AXTM will start provision tunnel(s) after 3 seconds....")
 time.sleep(3)
@@ -168,7 +169,7 @@ sections = list_sections(confFile)
 
 if not os.path.exists(confFile):
     print("Cannot find specified config file. Exiting...")
-    exit(1)
+    sys.exit(1)
 
 config = configparser.ConfigParser()
 config.read(confFile)
@@ -190,7 +191,7 @@ checkedArgs = checkmandatory(arguments)
 
 if not checkedArgs:
     print("There is no valid tunnel configuration in conf.ini. Exiting...")
-    exit(1)
+    sys.exit(1)
 
 for name, conf in checkedArgs.items():
     if detectTunnel(name):
