@@ -9,4 +9,8 @@
 # vni = <tunnel-id> (for vxlan only)
 #
 # Optional configurations:
+# preup = <command that executed before tunnel is up>
+# postup = <command that executed after tunnel is up>
 # bridge = <Destination-bridge-the-tunnel-will-add-to> (for vxlan only) (address will be disregarded if this setting is set)
+
+# Note: if there are multiple commands for pre/post up, create a script is recommended.

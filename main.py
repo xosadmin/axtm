@@ -163,7 +163,7 @@ if not detectUser():
 print("Welcome. AXTM will start provision tunnel(s) after 3 seconds....")
 time.sleep(3)
 
-confFile = os.path.join("conf.ini")
+confFile = os.path.join(os.getcwd(), "conf.ini")
 sections = list_sections(confFile)
 
 if not os.path.exists(confFile):
@@ -207,21 +207,57 @@ for name, conf in checkedArgs.items():
 
         if "bridge" in conf and conf["bridge"]:
             if detectBridge(conf["bridge"]):
+                try:
+                    if "preup" in conf:
+                        runCommand(conf["preup"])
+                except Exception as e:
+                    print(f"Error executing preup command for tunnel {name}: {e}")
+                    continue
                 createLink(name, conf["src"], conf["dst"], conf["dstport"],
                            conf["ttl"], conf["vni"], conf["mtu"], conf["bridge"])
+                try:
+                    if "postup" in conf:
+                        runCommand(conf["postup"])
+                except Exception as e:
+                    print(f"Error executing postup command for tunnel {name}: {e}")
+                    continue
             else:
                 print(f"Bridge {conf['bridge']} does not exist. Skipping...")
                 continue
         else:
             if testip(conf["address"]):
+                try:
+                    if "preup" in conf:
+                        runCommand(conf["preup"])
+                except Exception as e:
+                    print(f"Error executing preup command for tunnel {name}: {e}")
+                    continue
                 createLink(name, conf["src"], conf["dst"], conf["dstport"],
                            conf["ttl"], conf["vni"], conf["mtu"], conf["address"])
+                try:
+                    if "postup" in conf:
+                        runCommand(conf["postup"])
+                except Exception as e:
+                    print(f"Error executing postup command for tunnel {name}: {e}")
+                    continue
             else:
                 print(f"Incorrect endpoint address. Skipping config {name}...")
                 continue
     elif conf["type"] == "gretap":
         if testip(conf["address"]):
+            try:
+                if "preup" in conf:
+                    runCommand(conf["preup"])
+            except Exception as e:
+                print(f"Error executing preup command for tunnel {name}: {e}")
+                continue
             creategretap(name,conf["src"],conf["dst"],conf["ttl"],conf["mtu"],conf["address"])
+            try:
+                if "postup" in conf:
+                    runCommand(conf["postup"])
+            except Exception as e:
+                print(f"Error executing postup command for tunnel {name}: {e}")
+                continue
         else:
             print(f"Incorrect endpoint address. Skipping config {name}...")
             continue
@@ -239,8 +275,20 @@ for name, conf in checkedArgs.items():
                 continue
 
         if testip(conf["address"]):
+            try:
+                if "preup" in conf:
+                    runCommand(conf["preup"])
+            except Exception as e:
+                print(f"Error executing preup command for tunnel {name}: {e}")
+                continue
             createTunnel(name, conf["type"], conf["src"], conf["dst"],
                          conf["ttl"], conf["mtu"], conf["address"])
+            try:
+                if "postup" in conf:
+                    runCommand(conf["postup"])
+            except Exception as e:
+                print(f"Error executing postup command for tunnel {name}: {e}")
+                continue
         else:
             print(f"Incorrect endpoint address. Skipping config {name}...")
             continue
