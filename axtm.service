@@ -4,6 +4,7 @@ After=network.target
 
 [Service]
 ExecStart=/usr/bin/python3 /opt/axtm/main.py
+ExecStop=/usr/bin/python3 /opt/axtm/stop.py
 WorkingDirectory=/opt/axtm
 User=root
 Group=root

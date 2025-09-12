@@ -74,19 +74,6 @@ def list_sections(conffile):
 
     return config.sections()
 
-def readconf(conffile,section,settings):
-    if not os.path.exists(conffile):
-        print("Cannot find specified config file. Exiting...")
-        sys.exit(1)
-
-    config = configparser.ConfigParser()
-    config.read(conffile)
-
-    if settings not in config[section]:
-        return ""
-
-    return config[section][settings]
-
 def isIPv6(addr):
     ip_for_check = ipaddress.ip_address(addr)
     if isinstance(ip_for_check, ipaddress.IPv6Address):
