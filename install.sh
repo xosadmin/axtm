@@ -35,7 +35,7 @@ if [[ ! -d "/opt/axtm" ]]; then
   fi
 fi
 
-touch /opt/axtm/conf.ini && cp -r "*.py" /opt/axtm
+touch /opt/axtm/conf.ini && cp -r *.py /opt/axtm
 
 if [[ ! -f requirements.txt ]]; then
   echo "Error: requirements.txt is not exist. Exiting..." >&2
