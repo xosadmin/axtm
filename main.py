@@ -83,60 +83,51 @@ def isIPv6(addr):
 
 def runCommand(command):
     print(f"+ Executing command: {command}")
-    subprocess.run(command, shell=True, check=True)
+    subprocess.run(command, check=True)
 
 def createTunnel(name,type,localaddr,dstaddr,ttl,mtu,ipaddress):
-    cmd = [f"ip tunnel add {type}-{name} mode {type} local {localaddr} remote {dstaddr} ttl {ttl}",
-           f"ip link set {type}-{name} mtu {mtu} up",
-           f"ip addr add {ipaddress} dev {type}-{name}"]
+    cmd = [["ip", "tunnel", "add", f"{type}-{name}", "mode", type, "local", localaddr, "remote", dstaddr, "ttl", ttl],
+           ["ip", "link", "set", f"{type}-{name}", "mtu", mtu, "up"],
+           ["ip", "addr", "add", ipaddress, "dev", f"{type}-{name}"]]
     for item in cmd:
         runCommand(item)
 
 def creategretap(name,localaddr,dstaddr,ttl,mtu,ipaddress):
-    cmd = [f"ip link add gretap-{name} type gretap local {localaddr} remote {dstaddr} ttl {ttl}",
-           f"ip link set gretap-{name} mtu {mtu} up",
-           f"ip addr add {ipaddress} dev gretap-{name}"]
+    cmd = [["ip", "link", "add", f"gretap-{name}", "type", "gretap", "local", localaddr, "remote", dstaddr, "ttl", ttl],
+           ["ip", "link", "set", f"gretap-{name}", "mtu", mtu, "up"],
+           ["ip", "addr", "add", ipaddress, "dev", f"gretap-{name}"]]
     for item in cmd:
         runCommand(item)
 
 def createLink(name,localaddr,dstaddr,dstport,ttl,vni,mtu,iporbridge):
-    cmd = [f"ip link add vxlan-{name} type vxlan local {localaddr} remote {dstaddr} dstport {dstport} id {vni} ttl {ttl}",
-           f"ip link set vxlan-{name} mtu {mtu} up"]
+    cmd = [["ip","link","add",f"vxlan-{name}","type","vxlan","local",localaddr,"remote",dstaddr,"dstport",dstport,"id",vni,"ttl",ttl],
+           ["ip","link","set",f"vxlan-{name}","mtu",mtu,"up"]]
     if testip(iporbridge):
-        cmd.append(f"ip addr add {iporbridge} dev vxlan-{name}")
+        cmd.append(["ip","link","addr","add",iporbridge,"dev",f"vxlan-{name}"])
     else:
-        cmd.append(f"brctl addif {iporbridge} vxlan-{name}")
+        cmd.append(["brctl","addif",iporbridge,f"vxlan-{name}"])
     for item in cmd:
         runCommand(item)
 
-def detectTunnel(tunnel):
-    try:
-        result = subprocess.check_output(f"ip link | grep {tunnel}", shell=True, text=True)
-        if result.strip():
-            return True
-        else:
-            return False
-    except subprocess.CalledProcessError:
-        return False
+def detectSth(type, value=None):
+    cmd = []
+    expectValue = None
 
-def detectUser():
+    if type == "tunnel":
+        cmd = f"ip link | grep {value}"
+    elif type == "user":
+        cmd = ["whoami"]
+        expectValue = "root"
+    elif type == "bridge":
+        cmd = f"brctl show | grep {value}"
+
     try:
-        result = subprocess.check_output("whoami", shell=True, text=True)
-        user = result.strip()
-        if user == "root":
-            return True
-        else:
-            return False
-    except:
+        result = subprocess.check_output(cmd, shell=True, text=True).strip()
+        if result:
+            if expectValue:
+                return result == expectValue
+            return True  # If it's a tunnel or bridge, just return True if result exists
         return False
-    
-def detectBridge(bridge):
-    try:
-        result = subprocess.check_output(f"brctl show | grep {bridge}", shell=True, text=True)
-        if result.strip():
-            return True
-        else:
-            return False
     except subprocess.CalledProcessError:
         return False
 
@@ -144,7 +135,7 @@ def prepostup(type,command):
     print(f"Executing {type} command: {command}")
     runCommand(command)
 
-if not detectUser():
+if not detectSth("user"):
     print("You are not running on user root. Exiting...")
     sys.exit(1)
 
@@ -181,7 +172,7 @@ if not checkedArgs:
     sys.exit(1)
 
 for name, conf in checkedArgs.items():
-    if detectTunnel(name):
+    if detectSth("tunnel",name):
         print(f"The tunnel {name} already up. Skipped.")
         continue
 
@@ -198,7 +189,7 @@ for name, conf in checkedArgs.items():
             continue
 
         if "bridge" in conf and conf["bridge"]:
-            if detectBridge(conf["bridge"]):
+            if detectSth("bridge",conf["bridge"]):
                 try:
                     if "preup" in conf:
                         runCommand(conf["preup"])
