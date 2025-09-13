@@ -6,6 +6,7 @@ After=network.target
 ExecStart=/usr/bin/python3 /opt/axtm/main.py
 ExecStop=/usr/bin/python3 /opt/axtm/stop.py
 WorkingDirectory=/opt/axtm
+RemainAfterExit=true
 User=root
 Group=root
 Restart=always
