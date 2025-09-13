@@ -103,7 +103,7 @@ def createLink(name,localaddr,dstaddr,dstport,ttl,vni,mtu,iporbridge):
     cmd = [["ip","link","add",f"vxlan-{name}","type","vxlan","local",localaddr,"remote",dstaddr,"dstport",dstport,"id",vni,"ttl",ttl],
            ["ip","link","set",f"vxlan-{name}","mtu",mtu,"up"]]
     if testip(iporbridge):
-        cmd.append(["ip","link","addr","add",iporbridge,"dev",f"vxlan-{name}"])
+        cmd.append(["ip","addr","add",iporbridge,"dev",f"vxlan-{name}"])
     else:
         cmd.append(["brctl","addif",iporbridge,f"vxlan-{name}"])
     for item in cmd:
