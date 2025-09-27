@@ -17,6 +17,8 @@ def detectTunnel(tunnel):
         result = subprocess.check_output(f"ip link | grep {tunnel}", shell=True, text=True)
         if result.strip():
             name = result.split(":")[1].strip()
+            if "@" in name:
+                name = name.split("@")[0]
             return name
         else:
             return False
