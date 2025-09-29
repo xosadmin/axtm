@@ -193,7 +193,7 @@ for name, conf in checkedArgs.items():
             if detectSth("bridge",conf["bridge"]):
                 try:
                     if "preup" in conf:
-                        runCommand(conf["preup"])
+                        prepostup("preup",conf["preup"])
                 except Exception as e:
                     print(f"Error executing preup command for tunnel {name}: {e}")
                     continue
@@ -201,7 +201,7 @@ for name, conf in checkedArgs.items():
                            conf["ttl"], conf["vni"], conf["mtu"], conf["bridge"])
                 try:
                     if "postup" in conf:
-                        runCommand(conf["postup"])
+                        prepostup("postup",conf["postup"])
                 except Exception as e:
                     print(f"Error executing postup command for tunnel {name}: {e}")
                     continue
@@ -212,7 +212,7 @@ for name, conf in checkedArgs.items():
             if testip(conf["address"]):
                 try:
                     if "preup" in conf:
-                        runCommand(conf["preup"])
+                        prepostup("preup",conf["preup"])
                 except Exception as e:
                     print(f"Error executing preup command for tunnel {name}: {e}")
                     continue
@@ -220,7 +220,7 @@ for name, conf in checkedArgs.items():
                            conf["ttl"], conf["vni"], conf["mtu"], conf["address"])
                 try:
                     if "postup" in conf:
-                        runCommand(conf["postup"])
+                        prepostup("postup",conf["postup"])
                 except Exception as e:
                     print(f"Error executing postup command for tunnel {name}: {e}")
                     continue
@@ -231,14 +231,14 @@ for name, conf in checkedArgs.items():
         if testip(conf["address"]):
             try:
                 if "preup" in conf:
-                    runCommand(conf["preup"])
+                    prepostup("preup",conf["preup"])
             except Exception as e:
                 print(f"Error executing preup command for tunnel {name}: {e}")
                 continue
             creategretap(name,conf["src"],conf["dst"],conf["ttl"],conf["mtu"],conf["address"])
             try:
                 if "postup" in conf:
-                    runCommand(conf["postup"])
+                    prepostup("postup",conf["postup"])
             except Exception as e:
                 print(f"Error executing postup command for tunnel {name}: {e}")
                 continue
@@ -261,7 +261,7 @@ for name, conf in checkedArgs.items():
         if testip(conf["address"]):
             try:
                 if "preup" in conf:
-                    runCommand(conf["preup"])
+                    prepostup("preup",conf["preup"])
             except Exception as e:
                 print(f"Error executing preup command for tunnel {name}: {e}")
                 continue
@@ -269,7 +269,7 @@ for name, conf in checkedArgs.items():
                          conf["ttl"], conf["mtu"], conf["address"])
             try:
                 if "postup" in conf:
-                    runCommand(conf["postup"])
+                    prepostup("postup",conf["postup"])
             except Exception as e:
                 print(f"Error executing postup command for tunnel {name}: {e}")
                 continue
