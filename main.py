@@ -133,7 +133,8 @@ def detectSth(type, value=None):
 
 def prepostup(type,command):
     print(f"Executing {type} command: {command}")
-    runCommand(command)
+    splitedCommand = command.split(" ")
+    runCommand(splitedCommand)
 
 if not detectSth("user"):
     print("You are not running on user root. Exiting...")
