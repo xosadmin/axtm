@@ -37,6 +37,9 @@ def checkmandatory(dicts):
     # Iterate over each key in the dictionary
     keys_to_remove = []  # List to store keys to remove
     for key, values in modifydicts.items():
+        key = key.lower()
+        if key == "global":
+            continue
         missing_keys = []
         tunnelType = modifydicts[key]["type"]
         for item in mandatory:
