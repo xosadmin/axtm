@@ -35,7 +35,17 @@ if [[ ! -d "/opt/axtm" ]]; then
   fi
 fi
 
-touch /opt/axtm/conf.ini && cp -r *.py /opt/axtm
+cp -r *.py /opt/axtm
+
+if [[ ! -f "/opt/axtm/conf.ini" ]]; then
+  cat>>/opt/axtm/conf.ini<<EOF
+[global]
+countdown = 3
+
+EOF
+else
+  echo "Warning: /opt/axtm/conf.ini is exist. Adopting existing configures."
+fi
 
 if [[ ! -f requirements.txt ]]; then
   echo "Error: requirements.txt is not exist. Exiting..." >&2
