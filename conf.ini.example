@@ -1,3 +1,8 @@
+[global]
+countdown = 3
+# The axtm will start provising tunnel after "countdown" seconds. The seconds is float, which can be 3, or 3.01 seconds.
+# The default value of countdown is 3
+
 # [example-config]
 # src = <Your-ipv4-or-ipv6-endpoint>
 # dst = <Peers-endpoint>

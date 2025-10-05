@@ -143,19 +143,26 @@ if not detectSth("user"):
     print("You are not running on user root. Exiting...")
     sys.exit(1)
 
-print("Welcome. AXTM will start provision tunnel(s) after 3 seconds....")
-time.sleep(3)
-
 confFile = os.path.join(os.getcwd(), "conf.ini")
 sections = list_sections(confFile)
 
 if not os.path.exists(confFile):
-    print("Cannot find specified config file. Exiting...")
+    print("Error: Cannot find specified config file. Exiting...")
     sys.exit(1)
 
 config = configparser.ConfigParser()
 config.read(confFile)
 arguments = {}
+
+countdown = config.get(section="global", option="countdown", fallback="3")
+try:
+    countdown = float(countdown)
+except ValueError:
+    print("Warning: Invalid countdown value. Using default (3) seconds.")
+    countdown = 3
+
+print(f"Welcome. AXTM will start provision tunnel(s) after {countdown} seconds....")
+time.sleep(countdown)
 
 for item in sections:
     name = item.lower()
@@ -176,6 +183,9 @@ if not checkedArgs:
     sys.exit(1)
 
 for name, conf in checkedArgs.items():
+    if name == "global":
+        continue
+
     if detectSth("tunnel",name):
         print(f"The tunnel {name} already up. Skipped.")
         continue
