@@ -35,6 +35,7 @@ sections = list_sections(confFile)
 print("Start AXTM termination process...")
 
 for item in sections:
+    item = item.lower()
     if len(item) > 6:
         item = item[:6]
     if not detectTunnel(item):
