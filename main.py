@@ -86,29 +86,26 @@ def runCommand(command):
     subprocess.run(command, check=True)
 
 def createTunnel(name,type,localaddr,dstaddr,ttl,mtu,ipaddress):
-    loweredName = name.lower()
-    cmd = [["ip", "tunnel", "add", f"{type}-{loweredName}", "mode", type, "local", localaddr, "remote", dstaddr, "ttl", ttl],
-           ["ip", "link", "set", f"{type}-{loweredName}", "mtu", mtu, "up"],
-           ["ip", "addr", "add", ipaddress, "dev", f"{type}-{loweredName}"]]
+    cmd = [["ip", "tunnel", "add", f"{type}-{name}", "mode", type, "local", localaddr, "remote", dstaddr, "ttl", ttl],
+           ["ip", "link", "set", f"{type}-{name}", "mtu", mtu, "up"],
+           ["ip", "addr", "add", ipaddress, "dev", f"{type}-{name}"]]
     for item in cmd:
         runCommand(item)
 
 def creategretap(name,localaddr,dstaddr,ttl,mtu,ipaddress):
-    loweredName = name.lower()
-    cmd = [["ip", "link", "add", f"gretap-{loweredName}", "type", "gretap", "local", localaddr, "remote", dstaddr, "ttl", ttl],
-           ["ip", "link", "set", f"gretap-{loweredName}", "mtu", mtu, "up"],
-           ["ip", "addr", "add", ipaddress, "dev", f"gretap-{loweredName}"]]
+    cmd = [["ip", "link", "add", f"gretap-{name}", "type", "gretap", "local", localaddr, "remote", dstaddr, "ttl", ttl],
+           ["ip", "link", "set", f"gretap-{name}", "mtu", mtu, "up"],
+           ["ip", "addr", "add", ipaddress, "dev", f"gretap-{name}"]]
     for item in cmd:
         runCommand(item)
 
 def createLink(name,localaddr,dstaddr,dstport,ttl,vni,mtu,iporbridge):
-    loweredName = name.lower()
-    cmd = [["ip","link","add",f"vxlan-{loweredName}","type","vxlan","local",localaddr,"remote",dstaddr,"dstport",dstport,"id",vni,"ttl",ttl],
-           ["ip","link","set",f"vxlan-{loweredName}","mtu",mtu,"up"]]
+    cmd = [["ip","link","add",f"vxlan-{name}","type","vxlan","local",localaddr,"remote",dstaddr,"dstport",dstport,"id",vni,"ttl",ttl],
+           ["ip","link","set",f"vxlan-{name}","mtu",mtu,"up"]]
     if testip(iporbridge):
-        cmd.append(["ip","addr","add",iporbridge,"dev",f"vxlan-{loweredName}"])
+        cmd.append(["ip","addr","add",iporbridge,"dev",f"vxlan-{name}"])
     else:
-        cmd.append(["brctl","addif",iporbridge,f"vxlan-{loweredName}"])
+        cmd.append(["brctl","addif",iporbridge,f"vxlan-{name}"])
     for item in cmd:
         runCommand(item)
 
@@ -183,8 +180,11 @@ if not checkedArgs:
     sys.exit(1)
 
 for name, conf in checkedArgs.items():
+    name = name.lower()
+
     if name == "global":
         continue
+    # Skip global configuration
 
     if detectSth("tunnel",name):
         print(f"The tunnel {name} already up. Skipped.")
