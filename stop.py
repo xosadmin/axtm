@@ -51,7 +51,7 @@ sections = list_sections(confFile)
 
 print("Start AXTM termination process...")
 
-for key,value in sections:
+for key,value in sections.items():
     if not detectTunnel(key):
         continue
     tunnelName = detectTunnel(value,key)
