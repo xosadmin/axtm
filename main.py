@@ -195,7 +195,9 @@ for name, conf in checkedArgs.items():
         continue
     # Skip global configuration
 
-    if detectSth("tunnel",name):
+    types = checkedArgs[name]["type"]
+
+    if detectSth("tunnel",f"{types}-{name}"):
         print(f"The tunnel {name} already up. Skipped.")
         continue
 

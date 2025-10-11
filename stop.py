@@ -2,8 +2,6 @@ import os,sys
 import configparser
 import subprocess
 
-supportedProto = ["vxlan","gre","sit","gretap"]
-
 def list_sections(conffile):
     output = {}
     if not os.path.exists(conffile):
@@ -16,7 +14,7 @@ def list_sections(conffile):
     for item in config.sections():
         name = item[:6].lower()
         tunnType = config.get(section=item,option="type",fallback=None)
-        if not tunnType or tunnType not in supportedProto:
+        if not tunnType:
             print(f"{item} contains unsupported protocol, or is none.")
             continue
         output[name] = tunnType.lower()
