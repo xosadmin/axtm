@@ -52,9 +52,9 @@ sections = list_sections(confFile)
 print("Start AXTM termination process...")
 
 for key,value in sections.items():
-    if not detectTunnel(key):
+    tunnelName = detectTunnel(value, key)
+    if not tunnelName:
         continue
-    tunnelName = detectTunnel(value,key)
     cmd = f"ip link del {tunnelName}"
     runCommand(cmd)
 
