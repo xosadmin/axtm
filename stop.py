@@ -15,11 +15,11 @@ def list_sections(conffile):
 
     for item in config.sections():
         name = item[:6].lower()
-        tunnType = config.get(section=item,option="type",fallback=None).lower()
+        tunnType = config.get(section=item,option="type",fallback=None)
         if not tunnType or tunnType not in supportedProto:
             print(f"{item} contains unsupported protocol, or is none.")
             continue
-        output[name] = tunnType
+        output[name] = tunnType.lower()
 
     return output
 
