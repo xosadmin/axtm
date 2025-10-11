@@ -139,6 +139,11 @@ def prepostup(type,command):
     splitedCommand = command.split(" ")
     runCommand(splitedCommand)
 
+def createConfBak():
+    if os.path.exists("/tmp/axtm.conf"):
+        os.remove("/tmp/axtm.conf")
+    os.system("cp -r conf.ini /tmp/axtm.conf")
+
 if not detectSth("user"):
     print("You are not running on user root. Exiting...")
     sys.exit(1)
@@ -161,6 +166,7 @@ except ValueError:
     print("Warning: Invalid countdown value. Using default (3) seconds.")
     countdown = 3
 
+createConfBak()
 print(f"Welcome. AXTM will start provision tunnel(s) after {countdown} seconds....")
 time.sleep(countdown)
 
