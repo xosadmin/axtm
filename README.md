@@ -21,4 +21,4 @@ There are two methods to install AXTM.
 - Use ``pip3 install -r requirements.txt`` to install dependencies
 - Add tunnel config, enable and start the service
 
-For example of ``conf.ini``, please refer to [conf.ini.example](https://github.com/xosadmin/axtm/blob/main/conf.ini.example)  
+For example of ``conf.yml``, please refer to [example-config.yml](https://github.com/xosadmin/axtm/blob/main/example-config.yml)  
