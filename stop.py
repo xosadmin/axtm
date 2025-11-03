@@ -23,9 +23,9 @@ def list_sections(conffile):
 
     for item in dicts.keys():
         name = item[:6].lower()
-        tunnType = dicts.get(item, {}).get("type",fallback=None)
+        tunnType = dicts.get(item, {}).get("type", None)
         if not tunnType:
-            print(f"{item} contains unsupported protocol, or is none.")
+            print(f"{item} contains unsupported protocol, or is missing a 'type'. Skipping...")
             continue
         output[name] = tunnType.lower()
 

@@ -54,8 +54,8 @@ def checkmandatory(dicts):
     for key, values in modifydicts.items():
         key = key.lower()
         missing_keys = []
-        tunnelType = modifydicts.get(key,{}).get("type", None)
-        if tunnelType is None:
+        tunnelType = modifydicts.get(key,{}).get("type", "")
+        if tunnelType == "":
             keys_to_remove.append(key)
             continue
         else:
