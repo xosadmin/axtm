@@ -206,7 +206,7 @@ def main():
             vni = ""
             if "vni" in conf:
                 vni = conf.get("vni")
-            elif "id" in conf and vni is not None:
+            elif "id" in conf and vni != "":
                 vni = conf.get("id")
             else:
                 print(f"Unknown vxlan ID for tunnel {name}. Skipping...")
