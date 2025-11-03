@@ -1,9 +1,9 @@
 [Unit]
-Description=ax.wiki Tunnel Manager Service
+Description=AX Tunnel Manager Service
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/python3 /opt/axtm/main.py
+ExecStart=/usr/bin/python3 /opt/axtm/main.py --config /opt/axtm/config.yml
 ExecStop=/usr/bin/python3 /opt/axtm/stop.py
 WorkingDirectory=/opt/axtm
 RemainAfterExit=true

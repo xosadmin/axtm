@@ -38,9 +38,9 @@ fi
 cp -r *.py /opt/axtm
 
 if [[ ! -f "/opt/axtm/conf.ini" ]]; then
-  cat>>/opt/axtm/conf.ini<<EOF
-[global]
-countdown = 3
+  cat>>/opt/axtm/config.yml<<EOF
+global:
+    countdown: 3
 
 EOF
 else

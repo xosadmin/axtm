@@ -1,6 +1,15 @@
 import os,sys
-import configparser
+import argparse
 import subprocess
+import yaml
+
+def readConf(file):
+    if not os.path.exists(file):
+        return None
+    f = open(file,"r",encoding="utf-8")
+    data = yaml.safe_load(f)
+    f.close()
+    return data
 
 def list_sections(conffile):
     output = {}
@@ -8,14 +17,15 @@ def list_sections(conffile):
         print("Cannot find specified config file. Exiting...")
         sys.exit(1)
 
-    config = configparser.ConfigParser()
-    config.read(conffile)
+    dicts = readConf(conffile).get("configs", None)
+    if dicts is None:
+        return output
 
-    for item in config.sections():
+    for item in dicts.keys():
         name = item[:6].lower()
-        tunnType = config.get(section=item,option="type",fallback=None)
+        tunnType = dicts.get(item, {}).get("type", None)
         if not tunnType:
-            print(f"{item} contains unsupported protocol, or is none.")
+            print(f"{item} contains unsupported protocol, or is missing a 'type'. Skipping...")
             continue
         output[name] = tunnType.lower()
 
@@ -38,13 +48,16 @@ def runCommand(command):
     print(f"+ Executing command: {command}")
     subprocess.run(command, shell=True, check=True)
 
-confFile = ""
+parser = argparse.ArgumentParser(description="Specify user-defined config path")
+parser.add_argument('--config', type=str, default="/opt/axtm/config.yml", help='Config path')
+args = parser.parse_args()
+# Detect User-defined Config Path
+
+confFile = args.config
 tmpFlag = False
 if os.path.exists("/tmp/axtm.conf"):
     confFile = "/tmp/axtm.conf"
     tmpFlag = True
-else:
-    confFile = os.path.join(os.getcwd(), "conf.ini")
 sections = list_sections(confFile)
 
 print("Start AXTM termination process...")
