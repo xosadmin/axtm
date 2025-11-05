@@ -16,7 +16,7 @@ There are two methods to install AXTM.
 - Clone this project
 - Install ``python3``, ``gcc``, ``build-essential`` and ``python3-pip`` (You can skip it if you already installed)
 - Create directory ``/opt/axtm``
-- Copy and create all ``.py`` and ``.ini`` files to ``/opt/axtm``
+- Copy and create all ``.py``, ``.ini`` and ``config.yml`` files to ``/opt/axtm``
 - Create a new user ``axtm`` and change owner for ``config.yml`` to ``axtm``  
  ** In case of security, assign ``/usr/sbin/nologin`` to this user is recommended
 - Install service by copy ``axtm.service`` and ``axtm-api.service`` to ``/etc/systemd/system``, and perform ``systemd daemon-reload``
