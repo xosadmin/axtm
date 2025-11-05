@@ -12,7 +12,7 @@ echo "Thanks for using ax.wiki Tunnel Manager (AXTM). Starting installation..."
 deppy=$(dpkg -l | grep -c python3-pip)
 
 echo "Installing bridge utilities and iproute2..."
-apt install bridge-utils iproute2 -y
+apt install bridge-utils iproute2 gcc build-essential -y
 
 if [[ "$deppy" -eq "0" ]]; then
   echo "Python 3 is not installed. Installing..."
@@ -20,10 +20,11 @@ if [[ "$deppy" -eq "0" ]]; then
 fi
 
 if [[ -d "/etc/systemd/system" ]]; then
-  cp -r axtm.service /etc/systemd/system
-  chmod a+x /etc/systemd/system/axtm.service
-  systemctl daemon-reload && systemctl enable axtm
+  cp -r systemd/*.service /etc/systemd/system
+  chmod a+x /etc/systemd/system/axtm*.service
+  systemctl daemon-reload && systemctl enable axtm && systemctl disable axtm-api
   echo "axtm service is installed and enabled."
+  echo "axtm-api is not enabled by default. Use systemctl enable axtm-api to enable it."
 else
   echo "Your system is not supported to run axtm as service. Skipping service installation..."
 fi
@@ -35,17 +36,28 @@ if [[ ! -d "/opt/axtm" ]]; then
   fi
 fi
 
-cp -r *.py /opt/axtm
+find "$(pwd)" -type f \( -name "*.py" -o -name "*.ini" \) -exec cp '{}' /opt/axtm \;
 
-if [[ ! -f "/opt/axtm/conf.ini" ]]; then
+if [[ ! -f "/opt/axtm/config.yml" ]]; then
   cat>>/opt/axtm/config.yml<<EOF
 global:
     countdown: 3
+api:
+    enable: False
 
 EOF
 else
-  echo "Warning: /opt/axtm/conf.ini is exist. Adopting existing configures."
+  echo "Warning: /opt/axtm/config.yml is exist. Adopting existing configures."
 fi
+
+if [[ $(grep -c "axtm" /etc/passwd) -eq "0" ]]; then
+  useradd axtm && usermod -s /usr/sbin/nologin axtm
+  echo "axtm ALL=NOPASSWD: /bin/systemctl restart axtm" >> /etc/sudoers
+  systemctl restart ssh
+  echo "User axtm is created and disabled SSH access."
+fi
+
+chown -R axtm:axtm /opt/axtm/config.yml
 
 if [[ ! -f requirements.txt ]]; then
   echo "Error: requirements.txt is not exist. Exiting..." >&2
@@ -55,4 +67,3 @@ fi
 pip3 install -r requirements.txt --break-system-packages
 
 echo "Install Complete. The program is located at /opt/axtm. You can edit conf.ini to add tunnel configuration."
-echo "Supported Tunnel: vxlan, gre, gretap, sit"

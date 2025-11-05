@@ -25,8 +25,9 @@ fi
 
 echo "Updating files..."
 cp -r *.py /opt/axtm
-cp -r axtm.service /etc/systemd/system
-chmod a+x /etc/systemd/system/axtm.service && systemctl daemon-reload
+cp -r systemd/*.service /etc/systemd/system
+chmod a+x /etc/systemd/system/axtm*.service
+systemctl daemon-reload && systemctl enable axtm && systemctl disable axtm-api
 pip3 install -r requirements.txt --break-system-packages
 
 echo "Update completed. Restarting AXTM..."

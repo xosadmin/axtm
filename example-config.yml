@@ -1,25 +1,29 @@
 global:
     countdown: 3 # The axtm will start provising tunnel after "countdown" seconds.
+api:
+    enable: False # Switch to enable/disable api access for "dst" update. Default = False
 configs:
     example_config_gre_gretap: # Example config of gre/gretap
         type: <gre|gretap>
         src: <source address>
-        dst: <destination address>
+        dst: <destination address> # Allow FQDN / IP Address
         ttl: 255
         mtu: 1450
         address: <tunnel address>
+        apikey: <Update_Password_Goes_Here> # Password for API update "dst". If api is disabled, this will be disregarded
         pre_post_scripts: # Optional
             preup: <command execute before set up tunnel>
             postup: <command execute after set up tunnel>
     example_config_vxlan: # Example config of vxlan
         type: vxlan
         src: <source address>
-        dst: <destination address>
+        dst: <destination address> # Allow FQDN / IP Address
         dstport: <destination port>
         id: <id>
         ttl: 255
         mtu: 1450
         address: <tunnel address>
+        apikey: <Update_Password_Goes_Here> # Password for API update "dst". If api is disabled, this will be disregarded
         bridge: <bridge name> # Optional. If set up bridge, address will be disregarded
         pre_post_scripts: # Optional
               preup: <command execute before set up tunnel>

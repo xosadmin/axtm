@@ -1,3 +1,6 @@
 ipaddresses
 configparser
 pyyaml
+flask
+uwsgi
+validators
