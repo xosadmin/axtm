@@ -65,9 +65,9 @@ def home():
 
 @app.route('/updatedst', methods=["GET"])
 def uploadHandle():
-    key = request.args.get("key",default=None)
+    insertkey = request.args.get("key",default=None)
     src = request.args.get("src",default=get_client_ip())
-    if key is None:
+    if insertkey is None:
         return jsonify({"status": 400, "detail": "No API Key provided."}), 400
 
     configs = copy.deepcopy(data.get("configs", {}))
@@ -80,7 +80,7 @@ def uploadHandle():
     for key, value in configs.items():
         correct_api_key = value.get("apikey", None)
         if correct_api_key:
-            if key and key == correct_api_key:
+            if key and insertkey == correct_api_key:
                 try:
                     dumpConf(key, src)
                     app.logger.info(f"Src address for {key} successfully update to {src}.")

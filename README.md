@@ -30,4 +30,8 @@ The API Interface allows client dynamically update their endpoint address once t
 - API requires ``GET`` request method, and requires client pass ``key`` and ``src`` args
 - Example Usage: ``http://<Server_URL>:5000/updatedst?key=<Your_API_Key>&src=<New_Endpoint_Address>``
 
+### Domain Monitor
+The domain monitor allows client to provide FQDN (e.g. domain.example.com) as their endpoint address  
+It is recommended to add ``domain_monitor.py`` to ``crontab`` or scheduled task, so that endpoint resolves will be cached automatically
+
 For example of ``config.yml``, please refer to [example-config.yml](https://github.com/xosadmin/axtm/blob/main/example-config.yml)  

@@ -3,6 +3,8 @@ import subprocess, ipaddress, re
 import time
 import yaml
 import argparse
+from domain_monitor import checkDomain, checkResolve
+from domaintmp import domains_resolves
 
 def testip(inputvalue):
     if not inputvalue:
@@ -75,7 +77,7 @@ def checkmandatory(dicts):
         dst = modifydicts[key].get("dst", False)
         ttl = modifydicts[key].get("ttl", 255)
         mtu = modifydicts[key].get("mtu", 1450)
-        if not testip(src) or not testip(dst):
+        if not testip(src) or not testip(dst) or not checkDomain(dst):
             print(f"Error: config {key} will not be provisioned because of incorrect src/dst address.")
             keys_to_remove.append(key)
         if not checkvalue("ttl",ttl) or not checkvalue("mtu",mtu):
@@ -101,7 +103,14 @@ def runCommand(command, verbose):
     subprocess.run(command, check=True)
 
 def createTunnel(name,type,localaddr,dstaddr,ttl,mtu,ipaddress):
-    cmd = [["ip", "tunnel", "add", f"{type}-{name}", "mode", type, "local", localaddr, "remote", dstaddr, "ttl", str(ttl)],
+    if checkDomain(dstaddr):
+        ipresolve = domains_resolves.get(dstaddr, checkResolve(dstaddr))
+        if ipresolve is None:
+            print(f"{dstaddr} resolve failed. Skipped.")
+            return False
+    else:
+        ipresolve = dstaddr
+    cmd = [["ip", "tunnel", "add", f"{type}-{name}", "mode", type, "local", localaddr, "remote", ipresolve, "ttl", str(ttl)],
            ["ip", "link", "set", f"{type}-{name}", "mtu", str(mtu), "up"],
            ["ip", "addr", "add", ipaddress, "dev", f"{type}-{name}"]]
     print(f"Creating {type} tunnel {name}...")
@@ -109,7 +118,14 @@ def createTunnel(name,type,localaddr,dstaddr,ttl,mtu,ipaddress):
         runCommand(item, verbose=False)
 
 def creategretap(name,localaddr,dstaddr,ttl,mtu,ipaddress):
-    cmd = [["ip", "link", "add", f"gretap-{name}", "type", "gretap", "local", localaddr, "remote", dstaddr, "ttl", str(ttl)],
+    if checkDomain(dstaddr):
+        ipresolve = domains_resolves.get(dstaddr, checkResolve(dstaddr))
+        if ipresolve is None:
+            print(f"{dstaddr} resolve failed. Skipped.")
+            return False
+    else:
+        ipresolve = dstaddr
+    cmd = [["ip", "link", "add", f"gretap-{name}", "type", "gretap", "local", localaddr, "remote", ipresolve, "ttl", str(ttl)],
            ["ip", "link", "set", f"gretap-{name}", "mtu", str(mtu), "up"],
            ["ip", "addr", "add", ipaddress, "dev", f"gretap-{name}"]]
     print(f"Creating GRETAP tunnel {name}...")
@@ -117,7 +133,14 @@ def creategretap(name,localaddr,dstaddr,ttl,mtu,ipaddress):
         runCommand(item, verbose=False)
 
 def createLink(name,localaddr,dstaddr,dstport,ttl,vni,mtu,iporbridge):
-    cmd = [["ip","link","add",f"vxlan-{name}","type","vxlan","local",localaddr,"remote",dstaddr,"dstport",str(dstport),"id",str(vni),"ttl",str(ttl)],
+    if checkDomain(dstaddr):
+        ipresolve = domains_resolves.get(dstaddr, checkResolve(dstaddr))
+        if ipresolve is None:
+            print(f"{dstaddr} resolve failed. Skipped.")
+            return False
+    else:
+        ipresolve = dstaddr
+    cmd = [["ip","link","add",f"vxlan-{name}","type","vxlan","local",localaddr,"remote",ipresolve,"dstport",str(dstport),"id",str(vni),"ttl",str(ttl)],
            ["ip","link","set",f"vxlan-{name}","mtu",str(mtu),"up"]]
     print(f"Creating vxlan tunnel {name}...")
     if testip(iporbridge):
