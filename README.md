@@ -24,8 +24,8 @@ There are two methods to install AXTM.
 - Add tunnel config, enable and start the service
 
 ### API Access
-API Interface allows client dynamically update their endpoint address once their endpoint changes.  
-- API is disabled by default, set ``enable`` to ``True`` to enable API access
+The API Interface allows client dynamically update their endpoint address once their endpoint changed.  
+- API is disabled by default, set ``enable`` to ``True`` in ``config.yml`` to enable API access
 - API is listen to port ``5000`` by default, it is recommended to place API behind WAF or reverse proxy
 - API requires ``GET`` request method, and requires client pass ``key`` and ``src`` args
 - Example Usage: ``http://<Server_URL>:5000/updatedst?key=<Your_API_Key>&src=<New_Endpoint_Address>``
