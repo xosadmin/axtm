@@ -21,8 +21,7 @@ fi
 
 if [[ -d "/etc/systemd/system" ]]; then
   cp -r systemd/*.service /etc/systemd/system
-  chmod a+x /etc/systemd/system/axtm.service
-  chmod a+x /etc/systemd/system/axtm-api.service
+  chmod a+x /etc/systemd/system/axtm*.service
   systemctl daemon-reload && systemctl enable axtm && systemctl disable axtm-api
   echo "axtm service is installed and enabled."
   echo "axtm-api is not enabled by default. Use systemctl enable axtm-api to enable it."
