@@ -1,6 +1,7 @@
 from flask import *
 import yaml, copy
 import os, sys, subprocess
+import ipaddress
 import logging
 
 app = Flask(__name__)
@@ -20,6 +21,12 @@ def get_client_ip():
     if forwarded_for:
         return forwarded_for.split(',')[0]
     return request.remote_addr
+
+def detectEndpoint(ipaddr):
+    if isinstance(ipaddr, ipaddress.IPv4Address) or isinstance(ipaddr, ipaddress.IPv6Address):
+        return True
+    else:
+        return False
 
 def restartaxtm():
     try:
@@ -44,7 +51,7 @@ else:
 
 def dumpConf(key,srcaddr):
     try:
-        data["configs"][key]["src"] = srcaddr
+        data["configs"][key]["dst"] = srcaddr
         with open('config.yml', 'w') as file:
             yaml.dump(data, file, default_flow_style=False, allow_unicode=True, indent=4)
         return True
@@ -52,7 +59,11 @@ def dumpConf(key,srcaddr):
         app.logger.error(f"Error dumping config: {e}")
         return False
 
-@app.route('/', methods=["GET"])
+@app.route("/")
+def home():
+    return jsonify({"status": 400, "detail": "Unsupported Request Method"})
+
+@app.route('/updatedst', methods=["GET"])
 def uploadHandle():
     key = request.args.get("key",default=None)
     src = request.args.get("src",default=get_client_ip())
@@ -62,6 +73,9 @@ def uploadHandle():
     configs = copy.deepcopy(data.get("configs", {}))
     if len(configs) == 0:
         return jsonify({"status": 400, "detail": "No valid config."}), 400
+
+    if not detectEndpoint(src):
+        return jsonify({"status": 400, "detail": "Given endpoint address is not valid."}), 400
 
     for key, value in configs.items():
         correct_api_key = value.get("apikey", None)

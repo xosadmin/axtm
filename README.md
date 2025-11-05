@@ -17,8 +17,17 @@ There are two methods to install AXTM.
 - Install ``python3``, ``gcc``, ``build-essential`` and ``python3-pip`` (You can skip it if you already installed)
 - Create directory ``/opt/axtm``
 - Copy and create all ``.py`` and ``.ini`` files to ``/opt/axtm``
+- Create a new user ``axtm`` and change owner for ``config.yml`` to ``axtm``  
+ ** In case of security, assign ``/usr/sbin/nologin`` to this user is recommended
 - Install service by copy ``axtm.service`` and ``axtm-api.service`` to ``/etc/systemd/system``, and perform ``systemd daemon-reload``
 - Use ``pip3 install -r requirements.txt`` to install dependencies
 - Add tunnel config, enable and start the service
 
-For example of ``conf.yml``, please refer to [example-config.yml](https://github.com/xosadmin/axtm/blob/main/example-config.yml)  
+### API Access
+API Interface allows client dynamically update their endpoint address once their endpoint changes.  
+- API is disabled by default, set ``enable`` to ``True`` to enable API access
+- API is listen to port ``5000`` by default, it is recommended to place API behind WAF or reverse proxy
+- API requires ``GET`` request method, and requires client pass ``key`` and ``src`` args
+- Example Usage: ``http://<Server_URL>:5000/updatedst?key=<Your_API_Key>&src=<New_Endpoint_Address>``
+
+For example of ``config.yml``, please refer to [example-config.yml](https://github.com/xosadmin/axtm/blob/main/example-config.yml)  
