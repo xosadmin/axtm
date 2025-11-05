@@ -43,9 +43,8 @@ def checkvalue(type,value):
 def readConf(file):
     if not os.path.exists(file):
         return None
-    f = open(file,"r",encoding="utf-8")
-    data = yaml.safe_load(f)
-    f.close()
+    with open(file, "r", encoding="utf-8") as f:
+        data = yaml.safe_load(f)
     return data
 
 def checkmandatory(dicts):
@@ -175,6 +174,11 @@ def main():
         print("Error: Cannot find specified config file. Exiting...")
         sys.exit(1)
     sections = readConf(confFile)
+    ifAPIEnable = sections.get("api",{}).get("enable", False)
+
+    if isinstance(ifAPIEnable, bool) and ifAPIEnable:
+        print(f"API Detected Enabled. Starting API Interface...")
+        runCommand(["systemctl","start","axtm-api"], False)
 
     countdown = sections.get("global",{}).get("countdown", 3)
     try:

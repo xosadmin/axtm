@@ -1,0 +1,17 @@
+[Unit]
+Description=AXTM API Interface
+After=network.target
+
+[Service]
+User=axtm
+Group=axtm
+WorkingDirectory=/opt/axtm
+Environment=WSGI_FILE=/opt/axtm/api.py
+ExecStart=/usr/local/bin/uwsgi --ini /opt/axtm/uwsgi.ini
+Restart=always
+RestartSec=3
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
