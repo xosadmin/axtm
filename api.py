@@ -23,9 +23,10 @@ def get_client_ip():
     return request.remote_addr
 
 def detectEndpoint(ipaddr):
-    if isinstance(ipaddr, ipaddress.IPv4Address) or isinstance(ipaddr, ipaddress.IPv6Address):
+    try:
+        ipaddress.ip_address(ipaddr)
         return True
-    else:
+    except ValueError:
         return False
 
 def restartaxtm():

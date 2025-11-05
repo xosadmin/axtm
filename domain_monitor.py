@@ -1,7 +1,7 @@
 import socket
 import os,sys
 import yaml, copy, subprocess
-import validators
+import validators, ipaddress
 from domaintmp import domains_resolves
 
 def checkDomain(input):
@@ -14,6 +14,13 @@ def checkResolve(domain):
     except Exception as e:
         print(f"Error while checking resolve for {domain}: {e}")
         return None
+
+def detectipaddr(ipaddr):
+    try:
+        ipaddress.ip_address(ipaddr)
+        return True
+    except ValueError:
+        return False
 
 def restartaxtm():
     try:
@@ -45,16 +52,19 @@ def main():
 
     for key, value in configs.items():
         dst = value.get("dst", None)
-        if dst and checkDomain(dst):
-            latestResolve = checkResolve(dst)
-            currentResolve = domains_resolves.get(dst, None)
-            if currentResolve is None or currentResolve != latestResolve:
-                if currentResolve:
-                    domains_resolves.pop(dst)
-                domains_resolves[dst] = currentResolve
-                print(f"Profile {dst} has been updated with dst address {latestResolve}")
+        if detectipaddr(dst):
+            continue
         else:
-            print(f"Cannot find dst for {key}, or dst of {key} resolve failed.")
+            if dst and checkDomain(dst):
+                latestResolve = checkResolve(dst)
+                currentResolve = domains_resolves.get(dst, None)
+                if currentResolve is None or currentResolve != latestResolve:
+                    if currentResolve:
+                        domains_resolves.pop(dst)
+                    domains_resolves[dst] = currentResolve
+                    print(f"Domain {dst} has been updated with dst address {latestResolve}")
+            else:
+                print(f"Cannot find dst for {dst}, or dst of {dst} resolve failed.")
     restartaxtm()
     print("Complete")
 

@@ -77,9 +77,10 @@ def checkmandatory(dicts):
         dst = modifydicts[key].get("dst", False)
         ttl = modifydicts[key].get("ttl", 255)
         mtu = modifydicts[key].get("mtu", 1450)
-        if not testip(src) or not testip(dst) or not checkDomain(dst):
-            print(f"Error: config {key} will not be provisioned because of incorrect src/dst address.")
-            keys_to_remove.append(key)
+        if not testip(src) or not testip(dst):
+            if not checkDomain(dst):
+                print(f"Error: config {key} will not be provisioned because of incorrect src/dst address.")
+                keys_to_remove.append(key)
         if not checkvalue("ttl",ttl) or not checkvalue("mtu",mtu):
             print(f"Error: config {key} will not be provisioned because of incorrect ttl and/or mtu.")
             keys_to_remove.append(key)
@@ -201,7 +202,7 @@ def main():
 
     if isinstance(ifAPIEnable, bool) and ifAPIEnable:
         print(f"API Detected Enabled. Starting API Interface...")
-        runCommand(["systemctl","start","axtm-api"], False)
+        runCommand(["systemctl","restart","axtm-api"], False)
 
     countdown = sections.get("global",{}).get("countdown", 3)
     try:
@@ -229,15 +230,25 @@ def main():
             print(f"The tunnel {name} already up. Skipped.")
             continue
 
+        try:
+            if "preup" in conf.get("pre_post_scripts", {}):
+                prepostup("preup", conf.get("pre_post_scripts", {}).get("preup", []))
+            else:
+                print(f"Note: Tunnel {name} does not define pre-up script, or script file is not exist.")
+        except Exception as e:
+            print(f"Error executing preup command for tunnel {name}: {e}")
+            continue
+
         if conf["type"] == "vxlan":
             vni = ""
-            if "vni" in conf:
+            if "vni" in conf and conf.get("vni"):
                 vni = conf.get("vni")
-            elif "id" in conf and vni != "":
+            elif "id" in conf and conf.get("id"):
                 vni = conf.get("id")
             else:
                 print(f"Unknown vxlan ID for tunnel {name}. Skipping...")
                 continue
+
             dstport = conf.get("dstport", False)
 
             if not dstport or not checkvalue("dstport", dstport):
@@ -246,69 +257,21 @@ def main():
 
             if "bridge" in conf and conf["bridge"]:
                 if detectSth("bridge",conf["bridge"]):
-                    try:
-                        if "preup" in conf["pre_post_scripts"] and os.path.exists(conf.get("pre_post_scripts", {}).get("preup","")):
-                            prepostup("preup",conf.get("pre_post_scripts",{}).get("preup",[]))
-                        else:
-                            print(f"Note: Tunnel {name} does not define pre-up script, or script file is not exist.")
-                    except Exception as e:
-                        print(f"Error executing preup command for tunnel {name}: {e}")
-                        continue
                     createLink(tunnelName, conf["src"], conf["dst"], conf["dstport"],
                                conf["ttl"], vni, conf["mtu"], conf["bridge"])
-                    try:
-                        if "postup" in conf["pre_post_scripts"] and os.path.exists(conf.get("pre_post_scripts", {}).get("postup","")):
-                            prepostup("postup",conf.get("pre_post_scripts",{}).get("postup",[]))
-                        else:
-                            print(f"Note: Tunnel {name} does not define post-up script, or script file is not exist.")
-                    except Exception as e:
-                        print(f"Error executing postup command for tunnel {name}: {e}")
-                        continue
                 else:
                     print(f"Bridge {conf['bridge']} does not exist. Skipping...")
                     continue
             else:
                 if testip(conf["address"]):
-                    try:
-                        if "preup" in conf["pre_post_scripts"] and os.path.exists(conf.get("pre_post_scripts", {}).get("preup","")):
-                            prepostup("preup",conf.get("pre_post_scripts",{}).get("preup",[]))
-                        else:
-                            print(f"Note: Tunnel {name} does not define pre-up script, or script file is not exist.")
-                    except Exception as e:
-                        print(f"Error executing preup command for tunnel {name}: {e}")
-                        continue
                     createLink(tunnelName, conf["src"], conf["dst"], conf["dstport"],
                                conf["ttl"], vni, conf["mtu"], conf["address"])
-                    try:
-                        if "postup" in conf["pre_post_scripts"] and os.path.exists(conf.get("pre_post_scripts", {}).get("postup","")):
-                            prepostup("postup",conf.get("pre_post_scripts",{}).get("postup",[]))
-                        else:
-                            print(f"Note: Tunnel {name} does not define post-up script, or script file is not exist.")
-                    except Exception as e:
-                        print(f"Error executing postup command for tunnel {name}: {e}")
-                        continue
                 else:
                     print(f"Incorrect endpoint address. Skipping config {name}...")
                     continue
         elif conf["type"] == "gretap":
             if testip(conf["address"]):
-                try:
-                    if "preup" in conf["pre_post_scripts"] and os.path.exists(conf.get("pre_post_scripts", {}).get("preup","")):
-                        prepostup("preup",conf.get("pre_post_scripts",{}).get("preup",[]))
-                    else:
-                        print(f"Note: Tunnel {name} does not define pre-up script, or script file is not exist.")
-                except Exception as e:
-                    print(f"Error executing preup command for tunnel {name}: {e}")
-                    continue
                 creategretap(tunnelName,conf["src"],conf["dst"],conf["ttl"],conf["mtu"],conf["address"])
-                try:
-                    if "postup" in conf["pre_post_scripts"] and os.path.exists(conf.get("pre_post_scripts", {}).get("postup","")):
-                        prepostup("postup",conf.get("pre_post_scripts",{}).get("postup",[]))
-                    else:
-                        print(f"Note: Tunnel {name} does not define post-up script, or script file is not exist.")
-                except Exception as e:
-                    print(f"Error executing postup command for tunnel {name}: {e}")
-                    continue
             else:
                 print(f"Incorrect endpoint address. Skipping config {name}...")
                 continue
@@ -326,27 +289,20 @@ def main():
                     continue
 
             if testip(conf["address"]):
-                try:
-                    if "preup" in conf["pre_post_scripts"] and os.path.exists(conf.get("pre_post_scripts", {}).get("preup","")):
-                        prepostup("preup",conf.get("pre_post_scripts",{}).get("preup",[]))
-                    else:
-                        print(f"Note: Tunnel {name} does not define pre-up script, or script file is not exist.")
-                except Exception as e:
-                    print(f"Error executing preup command for tunnel {name}: {e}")
-                    continue
                 createTunnel(tunnelName, conf["type"], conf["src"], conf["dst"],
                              conf["ttl"], conf["mtu"], conf["address"])
-                try:
-                    if "postup" in conf["pre_post_scripts"] and os.path.exists(conf.get("pre_post_scripts", {}).get("postup","")):
-                        prepostup("postup",conf.get("pre_post_scripts",{}).get("postup",[]))
-                    else:
-                        print(f"Note: Tunnel {name} does not define post-up script, or script file is not exist.")
-                except Exception as e:
-                    print(f"Error executing postup command for tunnel {name}: {e}")
-                    continue
             else:
                 print(f"Incorrect endpoint address. Skipping config {name}...")
                 continue
+
+        try:
+            if "postup" in conf.get("pre_post_scripts", {}):
+                prepostup("postup", conf.get("pre_post_scripts", {}).get("postup", []))
+            else:
+                print(f"Note: Tunnel {name} does not define post-up script, or script file is not exist.")
+        except Exception as e:
+            print(f"Error executing postup command for tunnel {name}: {e}")
+            continue
 
     print(f"Process completed.")
 
