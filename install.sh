@@ -12,7 +12,7 @@ echo "Thanks for using ax.wiki Tunnel Manager (AXTM). Starting installation..."
 deppy=$(dpkg -l | grep -c python3-pip)
 
 echo "Installing bridge utilities and iproute2..."
-apt install bridge-utils iproute2 gcc -y
+apt install bridge-utils iproute2 gcc build-essential -y
 
 if [[ "$deppy" -eq "0" ]]; then
   echo "Python 3 is not installed. Installing..."
