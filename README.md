@@ -27,8 +27,8 @@ There are two methods to install AXTM.
 The API Interface allows client dynamically update their endpoint address once their endpoint changed.  
 - API is disabled by default, set ``enable`` to ``True`` in ``config.yml`` to enable API access
 - API is listen to port ``5000`` by default, it is recommended to place API behind WAF or reverse proxy
-- API requires ``GET`` request method, and requires client pass ``key`` and ``src`` args
-- Example Usage: ``http://<Server_URL>:5000/updatedst?key=<Your_API_Key>&src=<New_Endpoint_Address>``
+- API requires ``GET`` request method, and requires client pass ``config``, ``key`` and ``src`` args
+- Example Usage: ``http://<Server_URL>:5000/updatedst?config=<config_name>&key=<Your_API_Key>&src=<New_Endpoint_Address>``
 
 ### Domain Monitor
 The domain monitor allows client to provide FQDN (e.g. domain.example.com) as their endpoint address.
