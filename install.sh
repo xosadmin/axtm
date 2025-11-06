@@ -9,12 +9,15 @@ fi
 
 echo "Thanks for using ax.wiki Tunnel Manager (AXTM). Starting installation..."
 
-deppy=$(dpkg -l | grep -c python3-pip)
-
 echo "Installing bridge utilities and iproute2..."
 apt install bridge-utils iproute2 gcc build-essential -y
 
-if [[ "$deppy" -eq "0" ]]; then
+if [[ $(dpkg -l | grep -c "python3-*") -gt "0" ]]; then
+  echo "Removing conflict python libraries installed by apt-get..."
+  apt remove python3-* -y
+fi
+
+if [[ $(dpkg -l | grep -c python3-pip) -eq "0" ]]; then
   echo "Python 3 is not installed. Installing..."
   apt update -y --fix-missing && apt install python3 python3-pip -y
 fi
@@ -36,7 +39,7 @@ if [[ ! -d "/opt/axtm" ]]; then
   fi
 fi
 
-find "$(pwd)" -type f \( -name "*.py" -o -name "*.ini" \) -exec cp '{}' /opt/axtm \;
+cp -r utils /opt/axtm && cp -r *.py /opt/axtm && cp -r uwsgi.ini /opt/axtm
 
 if [[ ! -f "/opt/axtm/config.yml" ]]; then
   cat>>/opt/axtm/config.yml<<EOF
@@ -66,4 +69,4 @@ fi
 
 pip3 install -r requirements.txt --break-system-packages
 
-echo "Install Complete. The program is located at /opt/axtm. You can edit conf.ini to add tunnel configuration."
+echo "Install Complete. The program is located at /opt/axtm. You can edit config.yml to add tunnel configuration."

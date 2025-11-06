@@ -24,7 +24,7 @@ if [[ ! -d "/opt/axtm" ]]; then
 fi
 
 echo "Updating files..."
-cp -r *.py /opt/axtm
+cp -r utils /opt/axtm && cp -r *.py /opt/axtm && cp -r uwsgi.ini /opt/axtm
 cp -r systemd/*.service /etc/systemd/system
 chmod a+x /etc/systemd/system/axtm*.service
 systemctl daemon-reload && systemctl enable axtm && systemctl disable axtm-api
