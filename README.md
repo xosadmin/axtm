@@ -33,4 +33,8 @@ The API Interface allows client dynamically update their endpoint address once t
 ### Domain Monitor
 The domain monitor allows client to provide FQDN (e.g. domain.example.com) as their endpoint address.
 
+### Note
+- The config name can have any length, but it will only take first 6 letters as tunnel name. Please make sure first 6 
+letters are not the same.
+
 For example of ``config.yml``, please refer to [example-config.yml](https://github.com/xosadmin/axtm/blob/main/example-config.yml)  

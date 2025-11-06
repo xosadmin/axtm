@@ -2,6 +2,7 @@ import os,sys
 import argparse
 import subprocess
 import yaml
+from utils.confpreprocess import nameGen
 
 def readConf(file):
     if not os.path.exists(file):
@@ -22,7 +23,7 @@ def list_sections(conffile):
         return output
 
     for item in dicts.keys():
-        name = item[:6].lower()
+        name = nameGen(item)
         tunnType = dicts.get(item, {}).get("type", None)
         if not tunnType:
             print(f"{item} contains unsupported protocol, or is missing a 'type'. Skipping...")
@@ -37,8 +38,7 @@ def detectTunnel(type,tunnel):
         if result.strip():
             name = result.split(":")[1].strip()
             if "@" in name:
-                name = name.split("@")[0]
-            return name
+                return f"{type}-{tunnel}"
         else:
             return False
     except subprocess.CalledProcessError:
