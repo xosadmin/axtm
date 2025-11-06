@@ -12,11 +12,6 @@ echo "Thanks for using ax.wiki Tunnel Manager (AXTM). Starting installation..."
 echo "Installing bridge utilities and iproute2..."
 apt install bridge-utils iproute2 gcc build-essential -y
 
-if [[ $(dpkg -l | grep -c "python3-*") -gt "0" ]]; then
-  echo "Removing conflict python libraries installed by apt-get..."
-  apt remove python3-* -y
-fi
-
 if [[ $(dpkg -l | grep -c python3-pip) -eq "0" ]]; then
   echo "Python 3 is not installed. Installing..."
   apt update -y --fix-missing && apt install python3 python3-pip -y

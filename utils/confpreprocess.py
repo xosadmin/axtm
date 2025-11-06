@@ -1,6 +1,6 @@
 import re
 from utils.ipaddr import testip
-from domain_monitor import checkDomain
+from utils.domain_monitor import checkDomain
 
 def checkvalue(type,value):
     try:
