@@ -1,46 +1,11 @@
 import os,sys
-import subprocess, ipaddress, re
+import subprocess
 import time
 import yaml
 import argparse
-from domain_monitor import checkDomain, checkResolve
-from domaintmp import domains_resolves
-
-def testip(inputvalue):
-    if not inputvalue:
-        return False
-    if "/" in inputvalue:
-        value = inputvalue.split("/")[0]
-    else:
-        value = inputvalue
-    try:
-        ipaddress.ip_address(value)
-        return True
-    except:
-        return False
-
-def isIPv6(addr):
-    ip_for_check = ipaddress.ip_address(addr)
-    if isinstance(ip_for_check, ipaddress.IPv6Address):
-        return True
-    else:
-        return False
-
-def checkvalue(type,value):
-    try:
-        rawinput = int(value)
-    except ValueError: # If value is not a digit/contains non-digit value
-        return False
-    if type == "ttl":
-        if rawinput >= 1 and rawinput <= 255:
-            return True
-    elif type == "mtu":
-        if rawinput >= 68 and rawinput <= 9000:
-            return True
-    elif type == "dstport":
-        if rawinput >= 1 and rawinput <= 65535:
-            return True
-    return False
+from utils.domain_monitor import checkDomain, checkResolve
+from utils.confpreprocess import checkmandatory, nameGen, checkvalue
+from utils.ipaddr import testip, isIPv6, sit_ip_check
 
 def readConf(file):
     if not os.path.exists(file):
@@ -49,55 +14,6 @@ def readConf(file):
         data = yaml.safe_load(f)
     return data
 
-def checkmandatory(dicts):
-    if len(dicts) == 0:
-        print("The config is empty!")
-        return {}
-
-    modifydicts = dicts.copy()  # Make a copy of the dictionary to avoid modifying the original
-    mandatory = ["src", "dst", "address", "type", "mtu", "ttl"]
-    # Iterate over each key in the dictionary
-    keys_to_remove = []  # List to store keys to remove
-    for key, values in modifydicts.items():
-        key = key.lower()
-        missing_keys = []
-        tunnelType = modifydicts.get(key,{}).get("type", "")
-        if tunnelType == "":
-            keys_to_remove.append(key)
-            continue
-        else:
-            tunnelType = tunnelType.lower()
-        for item in mandatory:
-            if tunnelType == "vxlan" and item == "address":
-                continue
-            if item not in values:
-                missing_keys.append(item)
-        # If mandatory fields are missing, add this config to remove list
-        src = modifydicts[key].get("src", False)
-        dst = modifydicts[key].get("dst", False)
-        ttl = modifydicts[key].get("ttl", 255)
-        mtu = modifydicts[key].get("mtu", 1450)
-        if not testip(src) or not testip(dst):
-            if not checkDomain(dst):
-                print(f"Error: config {key} will not be provisioned because of incorrect src/dst address.")
-                keys_to_remove.append(key)
-        if not checkvalue("ttl",ttl) or not checkvalue("mtu",mtu):
-            print(f"Error: config {key} will not be provisioned because of incorrect ttl and/or mtu.")
-            keys_to_remove.append(key)
-        if missing_keys:
-            keys_to_remove.append(key)
-            print(
-                f"Warning: config {key} will not be provisioned because of missing mandatory setting(s): {', '.join(missing_keys)}.")
-    # Remove the keys after the loop has completed
-    for key in keys_to_remove:
-        modifydicts.pop(key)
-    return modifydicts
-
-def nameGen(rawName):
-    inputName = re.sub(r'[^A-Za-z0-9]',"",rawName)
-    output = inputName[:6]
-    return output
-
 def runCommand(command, verbose):
     if verbose:
         print(f"+ Executing command: {command}")
@@ -105,7 +21,7 @@ def runCommand(command, verbose):
 
 def createTunnel(name,type,localaddr,dstaddr,ttl,mtu,ipaddress):
     if checkDomain(dstaddr):
-        ipresolve = domains_resolves.get(dstaddr, checkResolve(dstaddr))
+        ipresolve = checkResolve(dstaddr)
         if ipresolve is None:
             print(f"{dstaddr} resolve failed. Skipped.")
             return False
@@ -120,7 +36,7 @@ def createTunnel(name,type,localaddr,dstaddr,ttl,mtu,ipaddress):
 
 def creategretap(name,localaddr,dstaddr,ttl,mtu,ipaddress):
     if checkDomain(dstaddr):
-        ipresolve = domains_resolves.get(dstaddr, checkResolve(dstaddr))
+        ipresolve = checkResolve(dstaddr)
         if ipresolve is None:
             print(f"{dstaddr} resolve failed. Skipped.")
             return False
@@ -135,7 +51,7 @@ def creategretap(name,localaddr,dstaddr,ttl,mtu,ipaddress):
 
 def createLink(name,localaddr,dstaddr,dstport,ttl,vni,mtu,iporbridge):
     if checkDomain(dstaddr):
-        ipresolve = domains_resolves.get(dstaddr, checkResolve(dstaddr))
+        ipresolve = checkResolve(dstaddr)
         if ipresolve is None:
             print(f"{dstaddr} resolve failed. Skipped.")
             return False
@@ -278,14 +194,8 @@ def main():
         else:
             # Non-vxlan tunnel
             if conf["type"] == "sit":
-                try:
-                    src_ip = ipaddress.ip_address(conf["src"].split("/")[0])
-                    dst_ip = ipaddress.ip_address(conf["dst"].split("/")[0])
-                    if isinstance(src_ip, ipaddress.IPv6Address) or isinstance(dst_ip, ipaddress.IPv6Address):
-                        print(f"Error: sit tunnel {name} is not allowed to use IPv6 as src/dst.")
-                        continue
-                except ValueError:
-                    print(f"Invalid IP format in config {name}. Skipping...")
+                if not sit_ip_check(conf.get("src",None),conf.get("dst",None)):
+                    print(f"Error: sit tunnel {name} is not allowed to use IPv6 as src/dst.")
                     continue
 
             if testip(conf["address"]):

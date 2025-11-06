@@ -2,7 +2,6 @@ import socket
 import os,sys
 import yaml, copy, subprocess
 import validators, ipaddress
-from domaintmp import domains_resolves
 
 def checkDomain(input):
     return validators.domain(input)
@@ -50,6 +49,9 @@ def main():
         print("Error: No valid config.")
         sys.exit(1)
 
+    domains_resolves = {}
+    ipchange = 0
+
     for key, value in configs.items():
         dst = value.get("dst", None)
         if detectipaddr(dst):
@@ -62,10 +64,12 @@ def main():
                     if currentResolve:
                         domains_resolves.pop(dst)
                     domains_resolves[dst] = currentResolve
-                    print(f"Domain {dst} has been updated with dst address {latestResolve}")
+                    ipchange += 1
             else:
                 print(f"Cannot find dst for {dst}, or dst of {dst} resolve failed.")
-    restartaxtm()
+    if ipchange > 0:
+        restartaxtm()
+        ipchange = 0
     print("Complete")
 
 if __name__ == '__main__':
