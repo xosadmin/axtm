@@ -5,7 +5,7 @@ import yaml
 import argparse
 from utils.domain_monitor import checkDomain, checkResolve
 from utils.confpreprocess import checkmandatory, nameGen, checkvalue
-from utils.ipaddr import testip, isIPv6, sit_ip_check
+from utils.ipaddr import testip, sit_ip_check
 
 def readConf(file):
     if not os.path.exists(file):
