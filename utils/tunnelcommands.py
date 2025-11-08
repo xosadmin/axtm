@@ -1,6 +1,6 @@
 import subprocess
 from utils.domain_monitor import checkDomain, checkResolve
-from ipaddr import testip
+from utils.ipaddr import testip
 
 def runCommand(command, verbose):
     if verbose:
