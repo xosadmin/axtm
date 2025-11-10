@@ -42,6 +42,7 @@ global:
     countdown: 3
 api:
     enable: False
+configs:
 
 EOF
 else

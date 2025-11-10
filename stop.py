@@ -37,7 +37,7 @@ def detectTunnel(type,tunnel):
         result = subprocess.check_output(f"ip link | grep {type}-{tunnel}", shell=True, text=True)
         if result.strip():
             name = result.split(":")[1].strip()
-            if "@" in name:
+            if "@" in name or type == "vxlan":
                 return f"{type}-{tunnel}"
         else:
             return False
