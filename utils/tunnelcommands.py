@@ -7,14 +7,21 @@ def runCommand(command, verbose):
         print(f"+ Executing command: {command}")
     subprocess.run(command, check=True)
 
-def createTunnel(name,type,localaddr,dstaddr,ttl,mtu,ipaddress):
-    if checkDomain(dstaddr):
-        ipresolve = checkResolve(dstaddr)
+def resolvedstaddr(inputvalue):
+    if checkDomain(inputvalue):
+        ipresolve = checkResolve(inputvalue)
         if ipresolve is None:
-            print(f"{dstaddr} resolve failed. Skipped.")
+            print(f"{inputvalue} resolve failed. Skipped.")
             return False
     else:
-        ipresolve = dstaddr
+        ipresolve = inputvalue
+    return ipresolve
+
+def createTunnel(name,type,localaddr,dstaddr,ttl,mtu,ipaddress):
+    ipresolve = resolvedstaddr(dstaddr)
+    if not ipresolve:
+        print(f"Setting up {type}-{name} failed.")
+        return False
     cmd = [["ip", "tunnel", "add", f"{type}-{name}", "mode", type, "local", localaddr, "remote", ipresolve, "ttl", str(ttl)],
            ["ip", "link", "set", f"{type}-{name}", "mtu", str(mtu), "up"],
            ["ip", "addr", "add", ipaddress, "dev", f"{type}-{name}"]]
@@ -23,13 +30,10 @@ def createTunnel(name,type,localaddr,dstaddr,ttl,mtu,ipaddress):
         runCommand(item, verbose=False)
 
 def creategretap(name,localaddr,dstaddr,ttl,mtu,ipaddress):
-    if checkDomain(dstaddr):
-        ipresolve = checkResolve(dstaddr)
-        if ipresolve is None:
-            print(f"{dstaddr} resolve failed. Skipped.")
-            return False
-    else:
-        ipresolve = dstaddr
+    ipresolve = resolvedstaddr(dstaddr)
+    if not ipresolve:
+        print(f"Setting up {type}-{name} failed.")
+        return False
     cmd = [["ip", "link", "add", f"gretap-{name}", "type", "gretap", "local", localaddr, "remote", ipresolve, "ttl", str(ttl)],
            ["ip", "link", "set", f"gretap-{name}", "mtu", str(mtu), "up"],
            ["ip", "addr", "add", ipaddress, "dev", f"gretap-{name}"]]
@@ -38,13 +42,10 @@ def creategretap(name,localaddr,dstaddr,ttl,mtu,ipaddress):
         runCommand(item, verbose=False)
 
 def createLink(name,localaddr,dstaddr,dstport,ttl,vni,mtu,iporbridge):
-    if checkDomain(dstaddr):
-        ipresolve = checkResolve(dstaddr)
-        if ipresolve is None:
-            print(f"{dstaddr} resolve failed. Skipped.")
-            return False
-    else:
-        ipresolve = dstaddr
+    ipresolve = resolvedstaddr(dstaddr)
+    if not ipresolve:
+        print(f"Setting up {type}-{name} failed.")
+        return False
     cmd = [["ip","link","add",f"vxlan-{name}","type","vxlan","local",localaddr,"remote",ipresolve,"dstport",str(dstport),"id",str(vni),"ttl",str(ttl)],
            ["ip","link","set",f"vxlan-{name}","mtu",str(mtu),"up"]]
     print(f"Creating vxlan tunnel {name}...")
