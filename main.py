@@ -50,7 +50,8 @@ def main():
     print(f"Welcome. AXTM will start provision tunnel(s) after {countdown} seconds....")
     time.sleep(countdown)
 
-    checkedArgs = checkmandatory(sections.get("configs",{}))
+    tryGetDefaultSrc = sections.get("defaults",{}).get("src", False)
+    checkedArgs = checkmandatory(sections.get("configs",{}),defaultSrc=tryGetDefaultSrc)
 
     if len(checkedArgs) == 0:
         print("There is no valid tunnel configuration in conf.ini. Exiting...")

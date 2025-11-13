@@ -18,7 +18,7 @@ def checkvalue(type,value):
             return True
     return False
 
-def checkmandatory(dicts):
+def checkmandatory(dicts,defaultSrc):
     if len(dicts) == 0:
         print("The config is empty!")
         return {}
@@ -42,7 +42,7 @@ def checkmandatory(dicts):
             if item not in values:
                 missing_keys.append(item)
         # If mandatory fields are missing, add this config to remove list
-        src = modifydicts[key].get("src", False)
+        src = modifydicts[key].get("src", defaultSrc)
         dst = modifydicts[key].get("dst", False)
         ttl = modifydicts[key].get("ttl", 255)
         mtu = modifydicts[key].get("mtu", 1450)

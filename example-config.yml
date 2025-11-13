@@ -2,10 +2,15 @@ global:
     countdown: 3 # The axtm will start provising tunnel after "countdown" seconds.
 api:
     enable: False # Switch to enable/disable api access for "dst" update. Default = False
+defaults:
+    src: <IPv4/IPv6 Source Address>
+    # Default source address. If 'src' is set, all config with unspecified 'src' address will adopt this address as source
+    # The 'defaults' will not be initialised in config.yml when fresh install, you need to add manually
+    # The 'src' does NOT support domain/FQDN as source
 configs:
     example_config_gre_gretap: # Example config of gre/gretap
         type: <gre|gretap>
-        src: <source address>
+        src: <source address> # Optional if 'src' in 'defaults' is set
         dst: <destination address> # Allow FQDN / IP Address
         ttl: 255
         mtu: 1450
@@ -16,7 +21,7 @@ configs:
             postup: <command execute after set up tunnel>
     example_config_vxlan: # Example config of vxlan
         type: vxlan
-        src: <source address>
+        src: <source address> # Optional if 'src' in 'defaults' is set
         dst: <destination address> # Allow FQDN / IP Address
         dstport: <destination port>
         id: <id>
