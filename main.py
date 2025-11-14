@@ -58,7 +58,6 @@ def main():
         sys.exit(1)
 
     for name, conf in checkedArgs.items():
-        name = name.lower()
         types = checkedArgs[name]["type"]
         tunnelName = nameGen(name)
 

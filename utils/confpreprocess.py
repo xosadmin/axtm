@@ -28,7 +28,6 @@ def checkmandatory(dicts,defaultSrc):
     # Iterate over each key in the dictionary
     keys_to_remove = []  # List to store keys to remove
     for key, values in modifydicts.items():
-        key = key.lower()
         missing_keys = []
         tunnelType = modifydicts.get(key,{}).get("type", "")
         if tunnelType == "":
@@ -36,17 +35,21 @@ def checkmandatory(dicts,defaultSrc):
             continue
         else:
             tunnelType = tunnelType.lower()
-        for item in mandatory:
-            if tunnelType == "vxlan" and item == "address":
-                continue
-            if item not in values:
-                missing_keys.append(item)
-        # If mandatory fields are missing, add this config to remove list
         src = modifydicts[key].get("src", defaultSrc)
         dst = modifydicts[key].get("dst", False)
         ttl = modifydicts[key].get("ttl", 255)
         mtu = modifydicts[key].get("mtu", 1450)
-        if not testip(src) or not testip(dst):
+        for item in mandatory:
+            if tunnelType == "vxlan" and item == "address":
+                continue
+            if item not in values:
+                if "src" not in values and not src:
+                    missing_keys.append(item)
+            modifydicts[key]["src"] = src
+            modifydicts[key]["ttl"] = ttl
+            modifydicts[key]["mtu"] = mtu
+            # If mandatory fields are missing, add this config to remove list
+        if (not testip(src) and not src) or not testip(dst):
             if not checkDomain(dst):
                 print(f"Error: config {key} will not be provisioned because of incorrect src/dst address.")
                 keys_to_remove.append(key)
