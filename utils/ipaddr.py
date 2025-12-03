@@ -20,6 +20,14 @@ def testip(inputvalue):
     except:
         return False
 
+def testIPinList(listvalue):
+    if not isinstance(listvalue, list) or len(listvalue) == 0:
+        return False
+    for item in listvalue:
+        if not testip(item):
+            return False
+    return True
+
 def sit_ip_check(srcip,dstip):
     try:
         src_ip = ipaddress.ip_address(srcip.split("/")[0])

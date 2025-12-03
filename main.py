@@ -3,7 +3,7 @@ import time
 import yaml
 import argparse
 from utils.confpreprocess import checkmandatory, nameGen, checkvalue
-from utils.ipaddr import testip, sit_ip_check
+from utils.ipaddr import sit_ip_check, testIPinList
 from utils.tunnelcommands import detectSth, runCommand, prepostup, createTunnel, creategretap, createLink
 
 def readConf(file):
@@ -67,9 +67,8 @@ def main():
 
         try:
             if "preup" in conf.get("pre_post_scripts", {}):
+                print(f"Executing preup command for tunnel {name}...")
                 prepostup("preup", conf.get("pre_post_scripts", {}).get("preup", []))
-            else:
-                print(f"Note: Tunnel {name} does not define pre-up script, or script file is not exist.")
         except Exception as e:
             print(f"Error executing preup command for tunnel {name}: {e}")
             continue
@@ -98,14 +97,14 @@ def main():
                     print(f"Bridge {conf['bridge']} does not exist. Skipping...")
                     continue
             else:
-                if testip(conf["address"]):
+                if testIPinList(conf["address"]):
                     createLink(tunnelName, conf["src"], conf["dst"], conf["dstport"],
                                conf["ttl"], vni, conf["mtu"], conf["address"])
                 else:
                     print(f"Incorrect endpoint address. Skipping config {name}...")
                     continue
         elif conf["type"] == "gretap":
-            if testip(conf["address"]):
+            if testIPinList(conf["address"]):
                 creategretap(tunnelName,conf["src"],conf["dst"],conf["ttl"],conf["mtu"],conf["address"])
             else:
                 print(f"Incorrect endpoint address. Skipping config {name}...")
@@ -117,7 +116,7 @@ def main():
                     print(f"Error: sit tunnel {name} is not allowed to use IPv6 as src/dst.")
                     continue
 
-            if testip(conf["address"]):
+            if testIPinList(conf["address"]):
                 createTunnel(tunnelName, conf["type"], conf["src"], conf["dst"],
                              conf["ttl"], conf["mtu"], conf["address"])
             else:
@@ -126,9 +125,8 @@ def main():
 
         try:
             if "postup" in conf.get("pre_post_scripts", {}):
+                print(f"Executing postup command for tunnel {name}...")
                 prepostup("postup", conf.get("pre_post_scripts", {}).get("postup", []))
-            else:
-                print(f"Note: Tunnel {name} does not define post-up script, or script file is not exist.")
         except Exception as e:
             print(f"Error executing postup command for tunnel {name}: {e}")
             continue
