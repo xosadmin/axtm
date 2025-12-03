@@ -17,6 +17,15 @@ def resolvedstaddr(inputvalue):
         ipresolve = inputvalue
     return ipresolve
 
+def ipcommands(ipstream,tunnelName):
+    if not isinstance(ipstream, list):
+        ipstream = [ipstream]
+    output = []
+    for ip in ipstream:
+        if testip(ip):
+            output.append(["ip","addr","add",ip,"dev",f"{tunnelName}"])
+    return output
+
 def createTunnel(name,type,localaddr,dstaddr,ttl,mtu,ipaddress):
     ipresolve = resolvedstaddr(dstaddr)
     if not ipresolve:
@@ -24,7 +33,8 @@ def createTunnel(name,type,localaddr,dstaddr,ttl,mtu,ipaddress):
         return False
     cmd = [["ip", "tunnel", "add", f"{type}-{name}", "mode", type, "local", localaddr, "remote", ipresolve, "ttl", str(ttl)],
            ["ip", "link", "set", f"{type}-{name}", "mtu", str(mtu), "up"],
-           ["ip", "addr", "add", ipaddress, "dev", f"{type}-{name}"]]
+          ]
+    cmd = cmd + ipcommands(ipaddress,f"{type}-{name}")
     print(f"Creating {type} tunnel {name}...")
     for item in cmd:
         runCommand(item, verbose=False)
@@ -36,7 +46,8 @@ def creategretap(name,localaddr,dstaddr,ttl,mtu,ipaddress):
         return False
     cmd = [["ip", "link", "add", f"gretap-{name}", "type", "gretap", "local", localaddr, "remote", ipresolve, "ttl", str(ttl)],
            ["ip", "link", "set", f"gretap-{name}", "mtu", str(mtu), "up"],
-           ["ip", "addr", "add", ipaddress, "dev", f"gretap-{name}"]]
+           ]
+    cmd = cmd + ipcommands(ipaddress, f"gretap-{name}")
     print(f"Creating GRETAP tunnel {name}...")
     for item in cmd:
         runCommand(item, verbose=False)
@@ -49,8 +60,8 @@ def createLink(name,localaddr,dstaddr,dstport,ttl,vni,mtu,iporbridge):
     cmd = [["ip","link","add",f"vxlan-{name}","type","vxlan","local",localaddr,"remote",ipresolve,"dstport",str(dstport),"id",str(vni),"ttl",str(ttl)],
            ["ip","link","set",f"vxlan-{name}","mtu",str(mtu),"up"]]
     print(f"Creating vxlan tunnel {name}...")
-    if testip(iporbridge):
-        cmd.append(["ip","addr","add",iporbridge,"dev",f"vxlan-{name}"])
+    if isinstance(iporbridge, list):
+        cmd = cmd + ipcommands(iporbridge, f"vxlan-{name}")
     else:
         cmd.append(["brctl","addif",iporbridge,f"vxlan-{name}"])
     for item in cmd:

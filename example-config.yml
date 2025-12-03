@@ -14,7 +14,9 @@ configs:
         dst: <destination address> # Allow FQDN / IP Address
         ttl: 255
         mtu: 1450
-        address: <tunnel address>
+        address:
+          - <tunnel address>
+          - <tunnel address>
         apikey: <Update_Password_Goes_Here> # Password for API update "dst". If api is disabled, this will be disregarded
         pre_post_scripts: # Optional
             preup: <command execute before set up tunnel>
