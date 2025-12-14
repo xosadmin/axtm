@@ -3,7 +3,7 @@ import time
 import yaml
 import argparse
 from utils.confpreprocess import checkmandatory, nameGen, checkvalue
-from utils.ipaddr import sit_ip_check, testIPinList
+from utils.ipaddr import sit_ip_check, testIPinList, isIPv6
 from utils.tunnelcommands import detectSth, runCommand, prepostup, createTunnel, creategretap, createLink
 
 def readConf(file):
@@ -58,8 +58,14 @@ def main():
         sys.exit(1)
 
     for name, conf in checkedArgs.items():
-        types = checkedArgs[name]["type"]
+        types = conf.get("type",None)
         tunnelName = nameGen(name)
+
+        if types is None:
+            print(f"{name} lacks of type. Skipping...")
+            continue
+
+        types = types.lower()
 
         if detectSth("tunnel",f"{types}-{tunnelName}"):
             print(f"The tunnel {name} already up. Skipped.")
@@ -73,7 +79,7 @@ def main():
             print(f"Error executing preup command for tunnel {name}: {e}")
             continue
 
-        if conf["type"] == "vxlan":
+        if types == "vxlan":
             vni = ""
             if "vni" in conf and conf.get("vni"):
                 vni = conf.get("vni")
@@ -103,7 +109,7 @@ def main():
                 else:
                     print(f"Incorrect endpoint address. Skipping config {name}...")
                     continue
-        elif conf["type"] == "gretap":
+        elif types == "gretap":
             if testIPinList(conf["address"]):
                 creategretap(tunnelName,conf["src"],conf["dst"],conf["ttl"],conf["mtu"],conf["address"])
             else:
@@ -111,13 +117,14 @@ def main():
                 continue
         else:
             # Non-vxlan tunnel
-            if conf["type"] == "sit":
+            if types == "sit":
                 if not sit_ip_check(conf.get("src",None),conf.get("dst",None)):
                     print(f"Error: sit tunnel {name} is not allowed to use IPv6 as src/dst.")
                     continue
-
+            if types == "gre" and (isIPv6(conf["src"]) or isIPv6(conf["dst"])):
+                types = "ip6gre"
             if testIPinList(conf["address"]):
-                createTunnel(tunnelName, conf["type"], conf["src"], conf["dst"],
+                createTunnel(tunnelName, types, conf["src"], conf["dst"],
                              conf["ttl"], conf["mtu"], conf["address"])
             else:
                 print(f"Incorrect endpoint address. Skipping config {name}...")
